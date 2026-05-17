@@ -1,0 +1,173 @@
+name: super-trunfo
+
+x-service-build: &service-build
+  context: ../..
+  dockerfile: infra/docker/fastapi-service.Dockerfile
+
+x-service-env: &service-env
+  ENVIRONMENT: local
+  DATABASE_URL: postgresql://super_trunfo:super_trunfo@postgres:5432/super_trunfo
+  REDIS_URL: redis://redis:6379/0
+  RABBITMQ_URL: amqp://super_trunfo:super_trunfo@rabbitmq:5672/
+  OPENSEARCH_URL: http://opensearch:9200
+  FEATURE_NFT_ENABLED: "false"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: super_trunfo
+      POSTGRES_USER: super_trunfo
+      POSTGRES_PASSWORD: super_trunfo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U super_trunfo -d super_trunfo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: super_trunfo
+      RABBITMQ_DEFAULT_PASS: super_trunfo
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  opensearch:
+    image: opensearchproject/opensearch:2
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: LocalOnlyPassword123!
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200 >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+
+  auth-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/auth-service
+    environment: *service-env
+    ports:
+      - "8001:8000"
+    depends_on: [postgres, redis, rabbitmq]
+
+  card-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/card-service
+    environment: *service-env
+    ports:
+      - "8002:8000"
+    depends_on: [postgres, redis, rabbitmq, opensearch]
+
+  matchmaking-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/matchmaking-service
+    environment: *service-env
+    ports:
+      - "8003:8000"
+    depends_on: [redis, rabbitmq]
+
+  gameplay-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/gameplay-service
+    environment: *service-env
+    ports:
+      - "8004:8000"
+    depends_on: [postgres, redis, rabbitmq]
+
+  economy-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/economy-service
+    environment: *service-env
+    ports:
+      - "8005:8000"
+    depends_on: [postgres, redis, rabbitmq]
+
+  ranking-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/ranking-service
+    environment: *service-env
+    ports:
+      - "8006:8000"
+    depends_on: [postgres, redis, rabbitmq]
+
+  nft-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/nft-service
+    environment: *service-env
+    ports:
+      - "8007:8000"
+    depends_on: [postgres, rabbitmq]
+
+  social-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/social-service
+    environment: *service-env
+    ports:
+      - "8008:8000"
+    depends_on: [postgres, redis, rabbitmq]
+
+  notification-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: apps/services/notification-service
+    environment: *service-env
+    ports:
+      - "8009:8000"
+    depends_on: [redis, rabbitmq]
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8001
+    ports:
+      - "3000:3000"
+    depends_on: [auth-service, card-service, matchmaking-service, gameplay-service]
+
+volumes:
+  postgres-data:
+
