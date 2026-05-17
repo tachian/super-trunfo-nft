@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node / web / contracts
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Flutter / mobile
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Infrastructure
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
