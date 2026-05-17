@@ -1,0 +1,29 @@
+events:
+  - name: CardCreated
+    producer: card-service
+    consumers: [nft-service, economy-service, ranking-service]
+  - name: MatchStarted
+    producer: matchmaking-service
+    consumers: [gameplay-service, notification-service]
+  - name: RoundFinished
+    producer: gameplay-service
+    consumers: [ranking-service]
+  - name: PlayerWonMatch
+    producer: gameplay-service
+    consumers: [ranking-service, economy-service, notification-service]
+  - name: CreditsEarned
+    producer: economy-service
+    consumers: [notification-service]
+  - name: CardExpired
+    producer: card-service
+    consumers: [economy-service, notification-service]
+  - name: PlayerRankUpdated
+    producer: ranking-service
+    consumers: [notification-service]
+  - name: TradeCreated
+    producer: nft-service
+    consumers: [economy-service, notification-service]
+  - name: MarketplaceSaleCompleted
+    producer: nft-service
+    consumers: [economy-service, ranking-service, notification-service]
+

@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: Super Trunfo Platform API
+  version: 0.1.0
+  description: Aggregated MVP API surface for service contracts.
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate player
+      tags: [Identity]
+      responses:
+        "202":
+          description: Planned endpoint
+  /auth/register:
+    post:
+      summary: Register player
+      tags: [Identity]
+      responses:
+        "202":
+          description: Planned endpoint
+  /cards:
+    get:
+      summary: List player cards
+      tags: [Cards]
+      responses:
+        "202":
+          description: Planned endpoint
+  /cards/{id}:
+    get:
+      summary: Get card details
+      tags: [Cards]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "202":
+          description: Planned endpoint
+  /cards/select-deck:
+    post:
+      summary: Select active deck
+      tags: [Cards]
+      responses:
+        "202":
+          description: Planned endpoint
+  /matchmaking/find:
+    post:
+      summary: Find PvP opponent or create PvE match
+      tags: [Matchmaking]
+      responses:
+        "202":
+          description: Planned endpoint
+  /match/{id}:
+    get:
+      summary: Get match state
+      tags: [Gameplay]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "202":
+          description: Planned endpoint
+  /match/{id}/play:
+    post:
+      summary: Play a round
+      tags: [Gameplay]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "202":
+          description: Planned endpoint
+  /shop/offers:
+    get:
+      summary: List shop offers
+      tags: [Economy]
+      responses:
+        "202":
+          description: Planned endpoint
+  /shop/buy:
+    post:
+      summary: Buy a card or pack
+      tags: [Economy]
+      responses:
+        "202":
+          description: Planned endpoint
+  /ranking/global:
+    get:
+      summary: Global leaderboard
+      tags: [Ranking]
+      responses:
+        "202":
+          description: Planned endpoint
+  /ranking/friends:
+    get:
+      summary: Friends leaderboard
+      tags: [Ranking]
+      responses:
+        "202":
+          description: Planned endpoint
+

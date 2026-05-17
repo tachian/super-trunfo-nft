@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["packages/python/super-trunfo-shared/src"]
+testpaths = ["packages/python/super-trunfo-shared/tests"]
+

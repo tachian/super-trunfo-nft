@@ -1,0 +1,2 @@
+"""Economy service application package."""
+

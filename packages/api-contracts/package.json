@@ -1,0 +1,12 @@
+{
+  "name": "@super-trunfo/api-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/validate-contracts.mjs",
+    "lint": "node scripts/validate-contracts.mjs",
+    "test": "node scripts/validate-contracts.mjs"
+  },
+  "type": "module"
+}
+

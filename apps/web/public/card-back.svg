@@ -1,0 +1,8 @@
+<svg width="144" height="200" viewBox="0 0 144 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Super Trunfo card back">
+  <rect x="4" y="4" width="136" height="192" rx="12" fill="#177E89" stroke="#1D2433" stroke-width="8"/>
+  <rect x="18" y="18" width="108" height="164" rx="8" fill="#FBFCFE" stroke="#0B5F66" stroke-width="4"/>
+  <path d="M72 42L104 82L72 158L40 82L72 42Z" fill="#F2A541" stroke="#1D2433" stroke-width="4"/>
+  <path d="M72 42V158" stroke="#1D2433" stroke-width="3"/>
+  <path d="M40 82H104" stroke="#1D2433" stroke-width="3"/>
+</svg>
+

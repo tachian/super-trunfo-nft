@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "super-trunfo-shared"
+version = "0.1.0"
+description = "Shared kernel for the Super Trunfo NFT game platform."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/super_trunfo_shared"]
+

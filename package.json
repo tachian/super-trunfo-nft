@@ -1,0 +1,22 @@
+{
+  "name": "super-trunfo-nft",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm --recursive --if-present build",
+    "format:check": "prettier --check .",
+    "lint": "pnpm --recursive --if-present lint",
+    "python:compile": "python -m compileall apps/services packages/python",
+    "python:test": "python -m pytest packages/python/super-trunfo-shared/tests",
+    "services:list": "node scripts/list-services.mjs",
+    "test": "pnpm --recursive --if-present test"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
+}
+

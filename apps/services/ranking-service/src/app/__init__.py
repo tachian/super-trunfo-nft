@@ -1,0 +1,2 @@
+"""Ranking service application package."""
+

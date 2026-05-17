@@ -1,0 +1,57 @@
+[
+  {
+    "name": "auth-service",
+    "context": "identity",
+    "port": 8001,
+    "description": "Autenticacao, registro, login e perfil do jogador."
+  },
+  {
+    "name": "card-service",
+    "context": "cards",
+    "port": 8002,
+    "description": "Cards, colecao, geracao procedural, raridade e expiracao."
+  },
+  {
+    "name": "matchmaking-service",
+    "context": "matchmaking",
+    "port": 8003,
+    "description": "Filas, pareamento por nivel medio do deck e fallback PvE."
+  },
+  {
+    "name": "gameplay-service",
+    "context": "gameplay",
+    "port": 8004,
+    "description": "Partidas, rodadas, regras, BOT e validacao anti-cheat."
+  },
+  {
+    "name": "economy-service",
+    "context": "economy",
+    "port": 8005,
+    "description": "Creditos, loja, compras, renovacao e inventario."
+  },
+  {
+    "name": "ranking-service",
+    "context": "ranking",
+    "port": 8006,
+    "description": "ELO/MMR, tiers, temporadas e leaderboards."
+  },
+  {
+    "name": "nft-service",
+    "context": "nft",
+    "port": 8007,
+    "description": "Metadados NFT, mint, ownership e integracao Polygon."
+  },
+  {
+    "name": "social-service",
+    "context": "social",
+    "port": 8008,
+    "description": "Amigos, convites, guildas, chat e replay."
+  },
+  {
+    "name": "notification-service",
+    "context": "notification",
+    "port": 8009,
+    "description": "Push notifications, alertas, convites e eventos."
+  }
+]
+
