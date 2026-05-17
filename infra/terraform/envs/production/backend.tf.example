@@ -1,0 +1,10 @@
+terraform {
+  backend "s3" {
+    bucket         = "replace-with-terraform-state-bucket"
+    key            = "super-trunfo/production/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "replace-with-lock-table"
+    encrypt        = true
+  }
+}
+

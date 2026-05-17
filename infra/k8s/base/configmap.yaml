@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+data:
+  ENVIRONMENT: staging
+  FEATURE_NFT_ENABLED: "false"
+  LOG_LEVEL: info
+  MATCHMAKING_TOLERANCE: "20"
+

@@ -1,0 +1,4 @@
+region            = "us-east-1"
+db_password       = "replace-with-secure-password"
+rabbitmq_password = "replace-with-secure-password"
+

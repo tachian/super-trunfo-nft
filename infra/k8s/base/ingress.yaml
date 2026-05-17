@@ -1,0 +1,61 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: super-trunfo
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: game.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 80
+          - path: /api/cards
+            pathType: Prefix
+            backend:
+              service:
+                name: card-service
+                port:
+                  number: 80
+          - path: /api/matchmaking
+            pathType: Prefix
+            backend:
+              service:
+                name: matchmaking-service
+                port:
+                  number: 80
+          - path: /api/match
+            pathType: Prefix
+            backend:
+              service:
+                name: gameplay-service
+                port:
+                  number: 80
+          - path: /api/shop
+            pathType: Prefix
+            backend:
+              service:
+                name: economy-service
+                port:
+                  number: 80
+          - path: /api/ranking
+            pathType: Prefix
+            backend:
+              service:
+                name: ranking-service
+                port:
+                  number: 80
+

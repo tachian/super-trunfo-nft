@@ -1,0 +1,60 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+patches:
+  - target:
+      kind: ConfigMap
+      name: platform-config
+    patch: |-
+      - op: replace
+        path: /data/ENVIRONMENT
+        value: production
+      - op: replace
+        path: /data/FEATURE_NFT_ENABLED
+        value: "false"
+replicas:
+  - name: auth-service
+    count: 3
+  - name: card-service
+    count: 3
+  - name: matchmaking-service
+    count: 3
+  - name: gameplay-service
+    count: 3
+  - name: economy-service
+    count: 3
+  - name: ranking-service
+    count: 3
+images:
+  - name: super-trunfo/auth-service
+    newName: ghcr.io/OWNER/REPO/auth-service
+    newTag: stable
+  - name: super-trunfo/card-service
+    newName: ghcr.io/OWNER/REPO/card-service
+    newTag: stable
+  - name: super-trunfo/matchmaking-service
+    newName: ghcr.io/OWNER/REPO/matchmaking-service
+    newTag: stable
+  - name: super-trunfo/gameplay-service
+    newName: ghcr.io/OWNER/REPO/gameplay-service
+    newTag: stable
+  - name: super-trunfo/economy-service
+    newName: ghcr.io/OWNER/REPO/economy-service
+    newTag: stable
+  - name: super-trunfo/ranking-service
+    newName: ghcr.io/OWNER/REPO/ranking-service
+    newTag: stable
+  - name: super-trunfo/nft-service
+    newName: ghcr.io/OWNER/REPO/nft-service
+    newTag: stable
+  - name: super-trunfo/social-service
+    newName: ghcr.io/OWNER/REPO/social-service
+    newTag: stable
+  - name: super-trunfo/notification-service
+    newName: ghcr.io/OWNER/REPO/notification-service
+    newTag: stable
+  - name: super-trunfo/web
+    newName: ghcr.io/OWNER/REPO/web
+    newTag: stable
+
