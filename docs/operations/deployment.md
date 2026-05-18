@@ -31,7 +31,7 @@ O fluxo de CD publica imagens no GitHub Container Registry e aplica as applicati
 
 ## GitOps
 
-Os overlays Kustomize e as applications ArgoCD apontam para `Avalia-Tachian/super-trunfo-nft`.
+Os overlays Kustomize e as applications ArgoCD apontam para `tachian/super-trunfo-nft`.
 
 Secrets esperados no GitHub:
 

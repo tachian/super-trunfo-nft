@@ -24,32 +24,32 @@ replicas:
     count: 2
 images:
   - name: super-trunfo/auth-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/auth-service
+    newName: ghcr.io/tachian/super-trunfo-nft/auth-service
     newTag: main
   - name: super-trunfo/card-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/card-service
+    newName: ghcr.io/tachian/super-trunfo-nft/card-service
     newTag: main
   - name: super-trunfo/matchmaking-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/matchmaking-service
+    newName: ghcr.io/tachian/super-trunfo-nft/matchmaking-service
     newTag: main
   - name: super-trunfo/gameplay-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/gameplay-service
+    newName: ghcr.io/tachian/super-trunfo-nft/gameplay-service
     newTag: main
   - name: super-trunfo/economy-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/economy-service
+    newName: ghcr.io/tachian/super-trunfo-nft/economy-service
     newTag: main
   - name: super-trunfo/ranking-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/ranking-service
+    newName: ghcr.io/tachian/super-trunfo-nft/ranking-service
     newTag: main
   - name: super-trunfo/nft-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/nft-service
+    newName: ghcr.io/tachian/super-trunfo-nft/nft-service
     newTag: main
   - name: super-trunfo/social-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/social-service
+    newName: ghcr.io/tachian/super-trunfo-nft/social-service
     newTag: main
   - name: super-trunfo/notification-service
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/notification-service
+    newName: ghcr.io/tachian/super-trunfo-nft/notification-service
     newTag: main
   - name: super-trunfo/web
-    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/web
+    newName: ghcr.io/tachian/super-trunfo-nft/web
     newTag: main
