@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.cache/
 .coverage
 htmlcov/
 .venv/
@@ -15,6 +16,9 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
+smart-contracts/artifacts/
+smart-contracts/cache/
+smart-contracts/typechain-types/
 
 # Flutter / mobile
 .dart_tool/

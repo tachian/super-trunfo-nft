@@ -7,4 +7,3 @@ data:
   FEATURE_NFT_ENABLED: "false"
   LOG_LEVEL: info
   MATCHMAKING_TOLERANCE: "20"
-

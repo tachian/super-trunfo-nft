@@ -9,4 +9,3 @@ resources:
   - ingress.yaml
 commonLabels:
   app.kubernetes.io/part-of: super-trunfo-nft
-

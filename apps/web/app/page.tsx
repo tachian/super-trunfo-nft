@@ -4,21 +4,27 @@ import { BadgeCent, Swords, Trophy, UsersRound } from "lucide-react";
 const cards = [
   { name: "Shadow Titan", family: "Titans", level: 393, rarity: "Epico" },
   { name: "Solar Lynx", family: "Solar", level: 344, rarity: "Raro" },
-  { name: "Iron Oracle", family: "Oracle", level: 318, rarity: "Comum" }
+  { name: "Iron Oracle", family: "Oracle", level: 318, rarity: "Comum" },
 ];
 
 const metrics = [
   { label: "Rating", value: "1480", icon: Trophy },
   { label: "Creditos", value: "12", icon: BadgeCent },
   { label: "Deck", value: "9/10", icon: Swords },
-  { label: "Amigos", value: "24", icon: UsersRound }
+  { label: "Amigos", value: "24", icon: UsersRound },
 ];
 
 export default function Home() {
   return (
     <main className="app-shell">
       <aside className="sidebar" aria-label="Navegacao principal">
-        <Image src="/card-back.svg" width={72} height={100} alt="Carta Super Trunfo" priority />
+        <Image
+          src="/card-back.svg"
+          width={72}
+          height={100}
+          alt="Carta Super Trunfo"
+          priority
+        />
         <nav>
           <a href="#deck">Deck</a>
           <a href="#matchmaking">Matchmaking</a>
@@ -59,7 +65,10 @@ export default function Home() {
             <div className="queue-meter" aria-label="Tolerancia de pareamento">
               <span style={{ width: "68%" }} />
             </div>
-            <p>Busca ativa em faixa de +/-20 pontos. Fallback PvE preparado para BOT equivalente.</p>
+            <p>
+              Busca ativa em faixa de +/-20 pontos. Fallback PvE preparado para
+              BOT equivalente.
+            </p>
           </div>
 
           <div className="deck-panel" id="deck">
@@ -70,7 +79,13 @@ export default function Home() {
             <div className="cards-grid">
               {cards.map((card) => (
                 <article key={card.name} className="card-tile">
-                  <Image src="/card-back.svg" width={54} height={76} alt="" aria-hidden="true" />
+                  <Image
+                    src="/card-back.svg"
+                    width={54}
+                    height={76}
+                    alt=""
+                    aria-hidden="true"
+                  />
                   <div>
                     <strong>{card.name}</strong>
                     <span>{card.family}</span>
@@ -87,4 +102,3 @@ export default function Home() {
     </main>
   );
 }
-

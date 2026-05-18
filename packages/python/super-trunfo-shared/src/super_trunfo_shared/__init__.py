@@ -1,4 +1,4 @@
-from .cards import CardAttributes, card_uniqueness_hash, calculate_card_level
+from .cards import CardAttributes, calculate_card_level, card_uniqueness_hash
 from .events import DomainEvent
 from .health import health_response
 

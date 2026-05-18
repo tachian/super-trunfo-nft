@@ -2,7 +2,11 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const requiredFiles = ["app/page.tsx", "app/layout.tsx", "public/card-back.svg"];
+const requiredFiles = [
+  "app/page.tsx",
+  "app/layout.tsx",
+  "public/card-back.svg",
+];
 const appRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 for (const file of requiredFiles) {

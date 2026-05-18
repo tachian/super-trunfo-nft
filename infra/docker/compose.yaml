@@ -166,8 +166,8 @@ services:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8001
     ports:
       - "3000:3000"
-    depends_on: [auth-service, card-service, matchmaking-service, gameplay-service]
+    depends_on:
+      [auth-service, card-service, matchmaking-service, gameplay-service]
 
 volumes:
   postgres-data:
-

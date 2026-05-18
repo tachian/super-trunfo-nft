@@ -1,0 +1,177 @@
+version: 0.1.0
+source: docs/Arquitetura Jogo Super Trunfo Nft Ddd.pdf
+contexts:
+  identity:
+    service: auth-service
+    aggregates:
+      - Player
+      - AuthSession
+    commands:
+      - RegisterPlayer
+      - LoginPlayer
+      - UpdatePlayerProfile
+    queries:
+      - GetCurrentPlayerProfile
+    events:
+      - PlayerRegistered
+      - PlayerLoggedIn
+  cards:
+    service: card-service
+    aggregates:
+      - Card
+      - Deck
+      - CardGenerationBatch
+    value_objects:
+      - CardAttributes
+      - CardUniquenessHash
+      - ExpirationDate
+    commands:
+      - GenerateInitialDeck
+      - GenerateProceduralCard
+      - SelectDeck
+      - ExpireCard
+    queries:
+      - ListPlayerCards
+      - GetCardDetails
+    events:
+      - CardCreated
+      - CardExpired
+      - DeckSelected
+    invariants:
+      - Cards cannot be fully identical.
+      - Deck selection must contain exactly 10 valid cards.
+      - Expired cards cannot be selected for active decks.
+  matchmaking:
+    service: matchmaking-service
+    aggregates:
+      - MatchmakingTicket
+      - QueueEntry
+    commands:
+      - RequestMatch
+      - CancelMatchmaking
+      - CreateBotFallback
+    queries:
+      - GetQueueStatus
+    events:
+      - MatchmakingRequested
+      - MatchStarted
+      - BotMatchCreated
+    invariants:
+      - Player deck level tolerance starts at plus or minus 20 points.
+      - Bot fallback must use an equivalent deck level.
+  gameplay:
+    service: gameplay-service
+    aggregates:
+      - Match
+      - Round
+      - BotStrategy
+    commands:
+      - StartMatch
+      - PlayRound
+      - FinishMatch
+      - AbandonMatch
+    queries:
+      - GetMatchState
+      - GetMatchReplay
+    events:
+      - RoundFinished
+      - PlayerWonMatch
+      - MatchAbandoned
+    invariants:
+      - Only backend can calculate round and match results.
+      - A card cannot be replayed in the same match after use.
+      - Round winner receives one point.
+  economy:
+    service: economy-service
+    aggregates:
+      - Wallet
+      - CreditLedgerEntry
+      - ShopOffer
+      - Purchase
+    commands:
+      - GrantCredits
+      - BuyShopOffer
+      - RenewCard
+    queries:
+      - ListShopOffers
+      - GetWalletBalance
+    events:
+      - CreditsEarned
+      - OfferPurchased
+      - CardRenewed
+    invariants:
+      - Match victory grants one credit in the MVP.
+      - Defeat grants zero credits in the MVP.
+      - Purchases must be atomic against wallet balance and inventory.
+  ranking:
+    service: ranking-service
+    aggregates:
+      - Rating
+      - Leaderboard
+      - Season
+    commands:
+      - RecalculatePlayerRating
+      - StartSeason
+      - FinishSeason
+    queries:
+      - GetGlobalRanking
+      - GetFriendsRanking
+    events:
+      - PlayerRankUpdated
+      - SeasonStarted
+      - SeasonFinished
+    invariants:
+      - Bronze tier ranges from 0 to 999.
+      - Silver tier ranges from 1000 to 1499.
+      - Gold tier ranges from 1500 to 1999.
+      - Platinum tier ranges from 2000 to 2499.
+      - Diamond tier starts at 2500.
+  nft:
+    service: nft-service
+    aggregates:
+      - NftMetadata
+      - MintRequest
+      - MarketplaceListing
+    commands:
+      - GenerateNftMetadata
+      - MintCardNft
+      - CreateMarketplaceListing
+    queries:
+      - GetNftMetadata
+      - ListMarketplaceListings
+    events:
+      - NftMetadataGenerated
+      - NFTTransferred
+      - MarketplaceListingCreated
+      - MarketplaceSaleCompleted
+    feature_flags:
+      - FEATURE_NFT_ENABLED
+  social:
+    service: social-service
+    aggregates:
+      - Friendship
+      - Invite
+      - Guild
+    commands:
+      - SendFriendInvite
+      - AcceptFriendInvite
+      - RejectFriendInvite
+    queries:
+      - ListFriends
+      - ListGuilds
+    events:
+      - FriendInviteSent
+      - FriendInviteAccepted
+  notification:
+    service: notification-service
+    aggregates:
+      - Notification
+      - DeliveryAttempt
+    commands:
+      - QueueNotification
+      - MarkNotificationDelivered
+    queries:
+      - ListNotifications
+    events:
+      - NotificationQueued
+      - NotificationDelivered

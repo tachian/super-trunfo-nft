@@ -53,4 +53,3 @@ Inclui:
 - eventos dinamicos;
 - observabilidade completa;
 - hardening de seguranca e performance.
-

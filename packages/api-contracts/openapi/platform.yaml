@@ -109,4 +109,3 @@ paths:
       responses:
         "202":
           description: Planned endpoint
-

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "hardhat compile",
-    "lint": "hardhat compile",
-    "test": "hardhat test"
+    "build": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat compile",
+    "lint": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat compile",
+    "test": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
@@ -14,4 +14,3 @@
     "typescript": "^5.7.2"
   }
 }
-

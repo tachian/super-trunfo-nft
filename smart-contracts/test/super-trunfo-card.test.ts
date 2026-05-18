@@ -13,4 +13,3 @@ describe("SuperTrunfoCard", () => {
     expect(await contract.tokenURI(1)).to.equal("ipfs://card-metadata");
   });
 });
-

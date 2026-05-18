@@ -19,4 +19,3 @@ updates:
     directory: /infra/terraform/envs/staging
     schedule:
       interval: weekly
-

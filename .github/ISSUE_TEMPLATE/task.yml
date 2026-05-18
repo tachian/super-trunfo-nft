@@ -24,4 +24,3 @@ body:
       placeholder: List observable outcomes for this task.
     validations:
       required: true
-

@@ -26,4 +26,3 @@ events:
   - name: MarketplaceSaleCompleted
     producer: nft-service
     consumers: [economy-service, ranking-service, notification-service]
-

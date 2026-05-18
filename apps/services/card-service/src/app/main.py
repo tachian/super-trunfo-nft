@@ -1,7 +1,6 @@
 from fastapi import status
-
 from super_trunfo_shared.api import create_service_app
-from super_trunfo_shared.cards import CardAttributes, card_uniqueness_hash, calculate_card_level
+from super_trunfo_shared.cards import CardAttributes, calculate_card_level, card_uniqueness_hash
 
 SERVICE_NAME = "card-service"
 CONTEXT = "cards"

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SuperTrunfoCard is ERC721URIStorage, Ownable {
@@ -21,4 +22,3 @@ contract SuperTrunfoCard is ERC721URIStorage, Ownable {
         return tokenId;
     }
 }
-

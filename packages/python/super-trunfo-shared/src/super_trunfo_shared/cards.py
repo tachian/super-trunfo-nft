@@ -3,7 +3,6 @@ from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from uuid import UUID
 
-
 CARD_ATTRIBUTES = ("speed", "strength", "intelligence", "resistance", "rarity")
 
 

@@ -103,4 +103,3 @@ jobs:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
       - name: Apply ArgoCD application
         run: kubectl apply -f infra/argocd/applications/${{ inputs.environment || 'staging' }}.yaml
-

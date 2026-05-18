@@ -3,14 +3,15 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Super Trunfo NFT",
-  description: "Competitive card game platform"
+  description: "Competitive card game platform",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
       <body>{children}</body>
     </html>
   );
 }
-

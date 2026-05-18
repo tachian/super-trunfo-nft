@@ -31,4 +31,3 @@ Super Trunfo NFT Game Platform e uma plataforma de jogo de cards competitivo ins
 - Taxa de conclusao de partida acima de 85%.
 - Ranking global funcional com atualizacao apos cada partida.
 - Loja e creditos sem inflacao critica nas primeiras simulacoes.
-

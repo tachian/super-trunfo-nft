@@ -1,5 +1,4 @@
 from fastapi import status
-
 from super_trunfo_shared.api import create_service_app
 
 SERVICE_NAME = "nft-service"

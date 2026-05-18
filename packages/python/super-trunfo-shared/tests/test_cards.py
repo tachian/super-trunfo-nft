@@ -2,10 +2,10 @@ from datetime import UTC, datetime
 
 from super_trunfo_shared.cards import (
     CardAttributes,
-    card_uniqueness_hash,
     calculate_card_level,
     calculate_expiration_date,
     calculate_expiration_days,
+    card_uniqueness_hash,
 )
 
 

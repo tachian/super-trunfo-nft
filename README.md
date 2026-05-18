@@ -42,6 +42,7 @@ docs/
 
 - [Visao do produto](docs/project/product-vision.md)
 - [Plano de implementacao do MVP](docs/project/mvp-implementation-plan.md)
+- [Mapa DDD e arquitetura hexagonal](docs/architecture/ddd-context-map.md)
 - [Roadmap](docs/project/roadmap.md)
 - [Backlog](docs/project/backlog.md)
 - [Sprints e tarefas](docs/project/sprints.md)

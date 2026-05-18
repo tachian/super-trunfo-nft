@@ -39,4 +39,3 @@ Adotaremos um monorepo com:
 - O monorepo facilita padronizacao, contratos e CI compartilhado.
 - Blockchain fica atras de feature flag para preservar foco do MVP.
 - A complexidade operacional aumenta, entao a primeira sprint inclui automacao, observabilidade e ambiente local.
-

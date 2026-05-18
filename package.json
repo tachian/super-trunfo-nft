@@ -11,7 +11,7 @@
     "format:check": "prettier --check .",
     "lint": "pnpm --recursive --if-present lint",
     "python:compile": "python -m compileall apps/services packages/python",
-    "python:test": "python -m pytest packages/python/super-trunfo-shared/tests",
+    "python:test": "node scripts/run-python-tests.mjs",
     "services:list": "node scripts/list-services.mjs",
     "test": "pnpm --recursive --if-present test"
   },
@@ -19,4 +19,3 @@
     "prettier": "^3.3.3"
   }
 }
-

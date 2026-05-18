@@ -2,7 +2,11 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const requiredFiles = ["openapi/platform.yaml", "events/domain-events.yaml"];
+const requiredFiles = [
+  "openapi/platform.yaml",
+  "events/domain-events.yaml",
+  "domain/domain-contracts.yaml",
+];
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 for (const file of requiredFiles) {
