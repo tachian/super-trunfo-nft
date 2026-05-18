@@ -41,6 +41,7 @@ docs/
 ## Documentacao de projeto
 
 - [Visao do produto](docs/project/product-vision.md)
+- [Plano de implementacao do MVP](docs/project/mvp-implementation-plan.md)
 - [Roadmap](docs/project/roadmap.md)
 - [Backlog](docs/project/backlog.md)
 - [Sprints e tarefas](docs/project/sprints.md)
@@ -57,4 +58,3 @@ ST-201: implement card uniqueness hash
 ```
 
 Ao final de cada tarefa, o commit deve ser enviado para o GitHub.
-
