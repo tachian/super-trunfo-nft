@@ -31,11 +31,10 @@ O fluxo de CD publica imagens no GitHub Container Registry e aplica as applicati
 
 ## GitOps
 
-Antes do primeiro deploy, substitua `OWNER/REPO` nos overlays Kustomize e nas applications ArgoCD pelo caminho real do repositorio GitHub.
+Os overlays Kustomize e as applications ArgoCD apontam para `Avalia-Tachian/super-trunfo-nft`.
 
 Secrets esperados no GitHub:
 
 - `KUBE_CONFIG`
 - `AWS_ROLE_TO_ASSUME`, quando Terraform/CD usar OIDC para AWS
 - senhas de banco e RabbitMQ em um secret manager do ambiente
-

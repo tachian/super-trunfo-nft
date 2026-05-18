@@ -28,33 +28,32 @@ replicas:
     count: 3
 images:
   - name: super-trunfo/auth-service
-    newName: ghcr.io/OWNER/REPO/auth-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/auth-service
     newTag: stable
   - name: super-trunfo/card-service
-    newName: ghcr.io/OWNER/REPO/card-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/card-service
     newTag: stable
   - name: super-trunfo/matchmaking-service
-    newName: ghcr.io/OWNER/REPO/matchmaking-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/matchmaking-service
     newTag: stable
   - name: super-trunfo/gameplay-service
-    newName: ghcr.io/OWNER/REPO/gameplay-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/gameplay-service
     newTag: stable
   - name: super-trunfo/economy-service
-    newName: ghcr.io/OWNER/REPO/economy-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/economy-service
     newTag: stable
   - name: super-trunfo/ranking-service
-    newName: ghcr.io/OWNER/REPO/ranking-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/ranking-service
     newTag: stable
   - name: super-trunfo/nft-service
-    newName: ghcr.io/OWNER/REPO/nft-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/nft-service
     newTag: stable
   - name: super-trunfo/social-service
-    newName: ghcr.io/OWNER/REPO/social-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/social-service
     newTag: stable
   - name: super-trunfo/notification-service
-    newName: ghcr.io/OWNER/REPO/notification-service
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/notification-service
     newTag: stable
   - name: super-trunfo/web
-    newName: ghcr.io/OWNER/REPO/web
+    newName: ghcr.io/Avalia-Tachian/super-trunfo-nft/web
     newTag: stable
-

@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/OWNER/REPO.git
+    repoURL: https://github.com/Avalia-Tachian/super-trunfo-nft.git
     targetRevision: stable
     path: infra/k8s/overlays/production
   destination:
@@ -18,4 +18,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
