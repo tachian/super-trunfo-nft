@@ -33,8 +33,12 @@ crash.log
 .env.*
 !.env.example
 
+# Workspace-only attachments and sandbox mounts
+doc/
+.agents/
+.codex/
+
 # OS / editors
 .DS_Store
 .idea/
 .vscode/
-
