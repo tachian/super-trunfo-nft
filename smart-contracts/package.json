@@ -8,9 +8,9 @@
     "test": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat test"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
     "@openzeppelin/contracts": "^5.1.0",
-    "hardhat": "^2.22.17",
-    "typescript": "^5.7.2"
+    "hardhat": "^3.5.1",
+    "typescript": "^6.0.3"
   }
 }
