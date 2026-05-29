@@ -27,7 +27,9 @@ O fluxo de CI executa:
 - build Docker dos servicos;
 - CodeQL e Trivy.
 
-O fluxo de CD publica imagens no GitHub Container Registry e aplica as applications ArgoCD para staging ou producao.
+O fluxo de CD publica imagens no GitHub Container Registry em pushes para `main` e tags `v*.*.*`.
+
+O deploy GitOps e controlado manualmente por `workflow_dispatch`, escolhendo `staging` ou `production`. Isso evita tentativas automaticas de deploy sem `KUBE_CONFIG` ou sem aprovacao do ambiente.
 
 ## GitOps
 
