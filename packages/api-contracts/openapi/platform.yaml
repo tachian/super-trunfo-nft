@@ -7,17 +7,43 @@ paths:
   /auth/login:
     post:
       summary: Authenticate player
+      operationId: loginPlayer
       tags: [Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginPlayerRequest"
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Player authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
   /auth/register:
     post:
       summary: Register player
+      operationId: registerPlayer
       tags: [Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPlayerRequest"
       responses:
-        "202":
-          description: Planned endpoint
+        "201":
+          description: Player registered and authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "409":
+          description: Email or nickname already registered
   /cards:
     get:
       summary: List player cards
@@ -109,3 +135,65 @@ paths:
       responses:
         "202":
           description: Planned endpoint
+components:
+  schemas:
+    AuthResponse:
+      type: object
+      required: [access_token, token_type, expires_in, player]
+      properties:
+        access_token:
+          type: string
+          description: Signed JWT access token.
+        token_type:
+          type: string
+          enum: [bearer]
+        expires_in:
+          type: integer
+          minimum: 1
+        player:
+          $ref: "#/components/schemas/PlayerSummary"
+    LoginPlayerRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          writeOnly: true
+    PlayerSummary:
+      type: object
+      required: [id, nickname, rating, credits]
+      properties:
+        id:
+          type: string
+          format: uuid
+        nickname:
+          type: string
+          minLength: 3
+          maxLength: 50
+        rating:
+          type: integer
+        credits:
+          type: integer
+    RegisterPlayerRequest:
+      type: object
+      required: [nickname, email, password]
+      properties:
+        nickname:
+          type: string
+          minLength: 3
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          writeOnly: true

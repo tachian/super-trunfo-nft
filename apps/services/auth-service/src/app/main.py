@@ -1,5 +1,7 @@
-from fastapi import status
 from super_trunfo_shared.api import create_service_app
+
+from app.api.routes import create_identity_router
+from app.infrastructure.repositories import InMemoryPlayerRepository
 
 SERVICE_NAME = "auth-service"
 CONTEXT = "identity"
@@ -14,19 +16,5 @@ app = create_service_app(
     context=CONTEXT,
     planned_routes=PLANNED_ROUTES,
 )
-
-
-@app.post("/auth/register", status_code=status.HTTP_202_ACCEPTED, tags=["identity"])
-async def register_player() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "planned", "task": "ST-101"}
-
-
-@app.post("/auth/login", status_code=status.HTTP_202_ACCEPTED, tags=["identity"])
-async def login_player() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "planned", "task": "ST-101"}
-
-
-@app.get("/players/me", status_code=status.HTTP_202_ACCEPTED, tags=["identity"])
-async def current_player_profile() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "planned", "task": "ST-102"}
-
+app.state.player_repository = InMemoryPlayerRepository()
+app.include_router(create_identity_router())

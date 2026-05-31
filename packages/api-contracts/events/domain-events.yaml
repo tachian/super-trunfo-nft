@@ -1,4 +1,10 @@
 events:
+  - name: PlayerRegistered
+    producer: auth-service
+    consumers: [card-service, notification-service]
+  - name: PlayerLoggedIn
+    producer: auth-service
+    consumers: [notification-service]
   - name: CardCreated
     producer: card-service
     consumers: [nft-service, economy-service, ranking-service]
