@@ -1,6 +1,6 @@
 # Super Trunfo NFT Game Platform
 
-Monorepo publico para evoluir um jogo competitivo de cards nos moldes do Super Trunfo, com base na arquitetura DDD/hexagonal descrita em `../doc/Arquitetura Jogo Super Trunfo Nft Ddd.pdf`.
+Monorepo publico para evoluir um jogo competitivo de cards nos moldes do Super Trunfo, com base na arquitetura DDD/hexagonal descrita em `docs/Arquitetura Jogo Super Trunfo Nft Ddd.pdf`.
 
 ## Objetivo
 
@@ -43,6 +43,7 @@ docs/
 - [Visao do produto](docs/project/product-vision.md)
 - [Plano de implementacao do MVP](docs/project/mvp-implementation-plan.md)
 - [Mapa DDD e arquitetura hexagonal](docs/architecture/ddd-context-map.md)
+- [Ambiente local](docs/operations/local-development.md)
 - [Roadmap](docs/project/roadmap.md)
 - [Backlog](docs/project/backlog.md)
 - [Sprints e tarefas](docs/project/sprints.md)

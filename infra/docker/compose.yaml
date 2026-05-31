@@ -12,6 +12,17 @@ x-service-env: &service-env
   OPENSEARCH_URL: http://opensearch:9200
   FEATURE_NFT_ENABLED: "false"
 
+x-fastapi-healthcheck: &fastapi-healthcheck
+  test:
+    - CMD
+    - python
+    - -c
+    - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 15s
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -76,7 +87,14 @@ services:
     environment: *service-env
     ports:
       - "8001:8000"
-    depends_on: [postgres, redis, rabbitmq]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   card-service:
     build:
@@ -86,7 +104,16 @@ services:
     environment: *service-env
     ports:
       - "8002:8000"
-    depends_on: [postgres, redis, rabbitmq, opensearch]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   matchmaking-service:
     build:
@@ -96,7 +123,12 @@ services:
     environment: *service-env
     ports:
       - "8003:8000"
-    depends_on: [redis, rabbitmq]
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   gameplay-service:
     build:
@@ -106,7 +138,14 @@ services:
     environment: *service-env
     ports:
       - "8004:8000"
-    depends_on: [postgres, redis, rabbitmq]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   economy-service:
     build:
@@ -116,7 +155,14 @@ services:
     environment: *service-env
     ports:
       - "8005:8000"
-    depends_on: [postgres, redis, rabbitmq]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   ranking-service:
     build:
@@ -126,7 +172,14 @@ services:
     environment: *service-env
     ports:
       - "8006:8000"
-    depends_on: [postgres, redis, rabbitmq]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   nft-service:
     build:
@@ -136,7 +189,12 @@ services:
     environment: *service-env
     ports:
       - "8007:8000"
-    depends_on: [postgres, rabbitmq]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   social-service:
     build:
@@ -146,7 +204,14 @@ services:
     environment: *service-env
     ports:
       - "8008:8000"
-    depends_on: [postgres, redis, rabbitmq]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   notification-service:
     build:
@@ -156,7 +221,12 @@ services:
     environment: *service-env
     ports:
       - "8009:8000"
-    depends_on: [redis, rabbitmq]
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck: *fastapi-healthcheck
 
   web:
     build:
@@ -167,7 +237,24 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      [auth-service, card-service, matchmaking-service, gameplay-service]
+      auth-service:
+        condition: service_healthy
+      card-service:
+        condition: service_healthy
+      matchmaking-service:
+        condition: service_healthy
+      gameplay-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   postgres-data:

@@ -6,6 +6,8 @@
 docker compose -f infra/docker/compose.yaml up --build
 ```
 
+Guia completo: `docs/operations/local-development.md`.
+
 Servicos locais:
 
 - Web: `http://localhost:3000`

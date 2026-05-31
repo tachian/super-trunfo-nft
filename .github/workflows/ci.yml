@@ -30,6 +30,7 @@ jobs:
       - run: pnpm quality:duplicates
       - run: pnpm --filter @super-trunfo/api-contracts test
       - run: pnpm services:list
+      - run: pnpm local:check
 
   python:
     name: Python services
