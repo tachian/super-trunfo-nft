@@ -27,6 +27,7 @@ Validar o ciclo principal do jogo antes de ativar blockchain real:
 - RabbitMQ para eventos de dominio.
 - OpenSearch preparado para busca de cards, ainda com uso restrito.
 - CI/CD completo com testes, build Docker, scan de seguranca e GitOps.
+- Padrao obrigatorio de DDD/hexagonal, SOLID, logs estruturados e mascaramento LGPD para todos os servicos.
 - Feature flags desde o inicio.
 - Metadados NFT gerados offline para preparar a evolucao futura.
 
@@ -59,13 +60,13 @@ Objetivo: criar a base do projeto para que as proximas sprints entreguem produto
 
 ### Historias
 
-| ID      | Historia                                                                                                      | Criterios de aceite                                                                                                                                                                                                       |
-| ------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MVP-001 | Como desenvolvedor, quero um monorepo padronizado para organizar apps, servicos, contratos, infra e docs.     | Estrutura raiz contem `apps`, `packages`, `infra`, `smart-contracts` e `docs`; README explica a estrutura; comandos principais estao no `package.json` e `Makefile`.                                                      |
-| MVP-002 | Como desenvolvedor, quero servicos FastAPI baseados em contextos DDD para evoluir cada dominio separadamente. | Servicos `auth`, `card`, `matchmaking`, `gameplay`, `economy`, `ranking`, `nft`, `social` e `notification` possuem healthcheck, readiness e rota de contexto.                                                             |
-| MVP-003 | Como desenvolvedor, quero contratos compartilhados para alinhar frontend, backend e eventos.                  | OpenAPI inicial cobre auth, cards, matchmaking, match, shop e ranking; catalogo de eventos inclui `CardCreated`, `MatchStarted`, `RoundFinished`, `PlayerWonMatch`, `CreditsEarned`, `CardExpired` e `PlayerRankUpdated`. |
-| MVP-004 | Como desenvolvedor, quero ambiente local completo para subir dependencias do MVP.                             | Docker Compose sobe Postgres, Redis, RabbitMQ, OpenSearch, web e servicos; portas locais documentadas; healthchecks basicos configurados.                                                                                 |
-| MVP-005 | Como time de produto, quero CI/CD desde a primeira sprint para manter qualidade e entrega continua.           | GitHub Actions executa lint, testes, build Docker, scan de seguranca e deploy GitOps controlado para staging/producao.                                                                                                    |
+| ID      | Historia                                                                                                      | Criterios de aceite                                                                                                                                                                                                                     |
+| ------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MVP-001 | Como desenvolvedor, quero um monorepo padronizado para organizar apps, servicos, contratos, infra e docs.     | Estrutura raiz contem `apps`, `packages`, `infra`, `smart-contracts` e `docs`; README explica a estrutura; comandos principais estao no `package.json` e `Makefile`.                                                                    |
+| MVP-002 | Como desenvolvedor, quero servicos FastAPI baseados em contextos DDD para evoluir cada dominio separadamente. | Servicos `auth`, `card`, `matchmaking`, `gameplay`, `economy`, `ranking`, `nft`, `social` e `notification` possuem healthcheck, readiness, rota de contexto e estrutura uniforme `api/application/domain/infrastructure/observability`. |
+| MVP-003 | Como desenvolvedor, quero contratos compartilhados para alinhar frontend, backend e eventos.                  | OpenAPI inicial cobre auth, cards, matchmaking, match, shop e ranking; catalogo de eventos inclui `CardCreated`, `MatchStarted`, `RoundFinished`, `PlayerWonMatch`, `CreditsEarned`, `CardExpired` e `PlayerRankUpdated`.               |
+| MVP-004 | Como desenvolvedor, quero ambiente local completo para subir dependencias do MVP.                             | Docker Compose sobe Postgres, Redis, RabbitMQ, OpenSearch, web e servicos; portas locais documentadas; healthchecks basicos configurados.                                                                                               |
+| MVP-005 | Como time de produto, quero CI/CD desde a primeira sprint para manter qualidade e entrega continua.           | GitHub Actions executa lint, PEP8/Ruff, duplicacao, testes, build Docker, scan de seguranca, SonarCloud quando configurado e deploy GitOps controlado para staging/producao.                                                            |
 
 ### Saida da sprint
 
@@ -186,15 +187,15 @@ Objetivo: estabilizar o MVP para demonstracao, staging e inicio de beta fechado.
 
 ### Historias
 
-| ID      | Historia                                                                            | Criterios de aceite                                                                                                            |
-| ------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| MVP-601 | Como operador, quero metricas de retencao, abandono e win rate para avaliar o jogo. | Eventos medem login, partida iniciada, partida concluida, abandono, win rate por card e tempo de matchmaking.                  |
-| MVP-602 | Como operador, quero logs e traces correlacionados para investigar problemas.       | Servicos propagam correlation id; OpenTelemetry configurado; dashboards iniciais para health, latencia e erros.                |
-| MVP-603 | Como operador, quero monitorar economia para evitar inflacao e abuso.               | Metricas de creditos ganhos, creditos gastos, compras, cards expirados e saldo medio por jogador.                              |
-| MVP-604 | Como sistema, quero validacoes anti-cheat no backend para proteger partidas.        | Backend rejeita alteracao de placar, jogada repetida, card invalido e atributo invalido; replay auditavel disponivel.          |
-| MVP-605 | Como operador, quero rate limit e hardening basico de seguranca.                    | Endpoints sensiveis possuem rate limit; JWT usa segredo externo; scan de seguranca roda no CI; checklist OWASP MVP preenchido. |
-| MVP-606 | Como time de entrega, quero release candidate em staging.                           | CD publica imagens, ArgoCD sincroniza staging, smoke tests passam e runbook de rollback existe.                                |
-| MVP-607 | Como PO, quero criterio claro de aceite do MVP.                                     | Checklist final confirma fluxo completo, metricas basicas, bugs criticos zerados e decisoes pos-MVP documentadas.              |
+| ID      | Historia                                                                            | Criterios de aceite                                                                                                                                              |
+| ------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MVP-601 | Como operador, quero metricas de retencao, abandono e win rate para avaliar o jogo. | Eventos medem login, partida iniciada, partida concluida, abandono, win rate por card e tempo de matchmaking.                                                    |
+| MVP-602 | Como operador, quero logs e traces correlacionados para investigar problemas.       | Servicos propagam correlation id; requests, responses e integracoes externas geram logs estruturados; dados sensiveis sao mascarados; OpenTelemetry configurado. |
+| MVP-603 | Como operador, quero monitorar economia para evitar inflacao e abuso.               | Metricas de creditos ganhos, creditos gastos, compras, cards expirados e saldo medio por jogador.                                                                |
+| MVP-604 | Como sistema, quero validacoes anti-cheat no backend para proteger partidas.        | Backend rejeita alteracao de placar, jogada repetida, card invalido e atributo invalido; replay auditavel disponivel.                                            |
+| MVP-605 | Como operador, quero rate limit e hardening basico de seguranca.                    | Endpoints sensiveis possuem rate limit; JWT usa segredo externo; scan de seguranca bloqueia alta/critica no CI; checklist OWASP MVP preenchido.                  |
+| MVP-606 | Como time de entrega, quero release candidate em staging.                           | CD publica imagens, ArgoCD sincroniza staging, smoke tests passam e runbook de rollback existe.                                                                  |
+| MVP-607 | Como PO, quero criterio claro de aceite do MVP.                                     | Checklist final confirma fluxo completo, metricas basicas, bugs criticos zerados e decisoes pos-MVP documentadas.                                                |
 
 ### Saida da sprint
 
@@ -216,6 +217,7 @@ Release candidate do MVP pronto para beta fechado e demonstracao.
 ## Definition of Ready
 
 - Historia ligada a uma sprint e a um contexto DDD.
+- Camada DDD afetada e impacto em SOLID identificados.
 - Criterios de aceite testaveis.
 - APIs/eventos impactados identificados.
 - Dados persistidos definidos.
@@ -224,9 +226,11 @@ Release candidate do MVP pronto para beta fechado e demonstracao.
 ## Definition of Done
 
 - Codigo implementado no servico/app correto.
+- Servicos mantem estrutura DDD/hexagonal uniforme e SOLID.
 - Testes unitarios e de integracao relevantes adicionados.
 - Contratos OpenAPI/eventos atualizados quando necessario.
-- Observabilidade minima adicionada para o fluxo.
+- Logs estruturados de request, response e integracao adicionados para o fluxo, com mascaramento LGPD quando houver dados sensiveis.
+- Quality gates de lint, PEP8/Ruff, duplicacao, testes, contratos e vulnerabilidades passando no CI.
 - Docker/CI atualizado se o runtime mudou.
 - Commit com ID da historia ou tarefa.
 - Push para GitHub ao final da historia.

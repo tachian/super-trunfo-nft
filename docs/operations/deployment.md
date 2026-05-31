@@ -19,13 +19,16 @@ Servicos locais:
 O fluxo de CI executa:
 
 - contratos OpenAPI/eventos;
-- lint e compilacao Python;
+- lint, type check e PEP8/Ruff;
+- checagem de duplicacao com `pnpm quality:duplicates`;
 - testes de cada servico FastAPI;
 - build Next.js;
 - testes Flutter;
 - testes Hardhat;
 - build Docker dos servicos;
-- CodeQL e Trivy.
+- CodeQL e Trivy bloqueando vulnerabilidades altas ou criticas.
+
+Quando `SONAR_ENABLED=true` e `SONAR_TOKEN` estiver configurado no GitHub, o CI tambem executa SonarCloud com quality gate bloqueante.
 
 O fluxo de CD publica imagens no GitHub Container Registry em pushes para `main` e tags `v*.*.*`.
 

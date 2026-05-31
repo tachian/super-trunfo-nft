@@ -6,7 +6,7 @@ As sprints tem duracao de 2 semanas. O planejamento abaixo considera inicio em 1
 
 Objetivo: estabelecer monorepo, CI/CD, padroes de arquitetura, contratos, observabilidade e ambiente local.
 
-Resultado esperado: qualquer servico novo nasce com healthcheck, testes, lint, Dockerfile, manifest Kubernetes e pipeline GitHub Actions.
+Resultado esperado: qualquer servico novo nasce com estrutura DDD/hexagonal uniforme, SOLID, healthcheck, logs estruturados, testes, lint, Dockerfile, manifest Kubernetes e pipeline GitHub Actions.
 
 ## Fase 1 - MVP competitivo sem blockchain
 
@@ -52,4 +52,5 @@ Inclui:
 - temporadas;
 - eventos dinamicos;
 - observabilidade completa;
+- mascaramento LGPD em logs, traces e metricas;
 - hardening de seguranca e performance.

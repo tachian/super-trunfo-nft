@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
   security-events: write
 
 env:
@@ -26,6 +27,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
+      - run: pnpm quality:duplicates
       - run: pnpm --filter @super-trunfo/api-contracts test
       - run: pnpm services:list
 
@@ -163,7 +165,26 @@ jobs:
           scan-ref: .
           format: sarif
           output: trivy-results.sarif
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: trivy-results.sarif
+
+  sonarcloud:
+    name: SonarCloud quality gate
+    runs-on: ubuntu-latest
+    if: ${{ vars.SONAR_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true

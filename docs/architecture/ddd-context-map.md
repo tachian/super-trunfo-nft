@@ -25,6 +25,8 @@ domain -> sem dependencia de framework
 
 O `shared kernel` deve conter apenas conceitos estaveis e transversais, como healthcheck, eventos, value objects comuns e formulas aceitas pelo dominio. Regras especificas de um contexto devem permanecer no proprio servico.
 
+Os padroes obrigatorios de implementacao ficam em `docs/architecture/service-engineering-standards.md`. Todo servico novo deve manter a mesma estrutura `api`, `application`, `domain`, `infrastructure` e `observability`, aplicar SOLID e emitir logs estruturados com mascaramento LGPD para dados pessoais.
+
 ## Contextos Delimitados
 
 | Contexto     | Servico                | Responsabilidade                                                     | Agregados principais                           | Eventos publicados                                                    |
@@ -64,6 +66,7 @@ O `shared kernel` deve conter apenas conceitos estaveis e transversais, como hea
 - Eventos precisam ter nome, versao, produtor, consumidores e payload minimo.
 - Integracoes sincronas devem ser usadas para consultas interativas do jogador.
 - Integracoes assincronas devem ser usadas para efeitos colaterais, ranking, notificacoes e telemetria.
+- Toda integracao deve registrar log antes do request e depois da resposta, sempre com `correlation_id` e payload mascarado.
 - Blockchain real permanece atras de feature flag ate o pos-MVP.
 
 ## Shared Kernel Inicial

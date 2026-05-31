@@ -19,7 +19,8 @@ Adotaremos um monorepo com:
 - Flutter para mobile;
 - smart contracts isolados em `smart-contracts`;
 - infraestrutura declarativa em Docker Compose, Kubernetes, Terraform e ArgoCD;
-- CI/CD via GitHub Actions.
+- CI/CD via GitHub Actions;
+- padroes de engenharia em `docs/architecture/service-engineering-standards.md`, cobrindo DDD, SOLID, logs estruturados, mascaramento LGPD e quality gates.
 
 ## Contextos iniciais
 
@@ -36,6 +37,10 @@ Adotaremos um monorepo com:
 ## Consequencias
 
 - Servicos podem evoluir independentemente, mantendo limites de dominio claros.
+- Todos os servicos precisam manter estrutura DDD/hexagonal uniforme para reduzir divergencia entre contextos.
+- Codigo novo deve respeitar SOLID e expor dependencias externas por portas/adapters.
+- Logs de requests, responses e integracoes externas passam a ser obrigatorios, sempre com mascaramento de dados sensiveis.
 - O monorepo facilita padronizacao, contratos e CI compartilhado.
+- O CI deve bloquear merge quando lint, PEP8/Ruff, duplicacao, testes, contratos ou scans de vulnerabilidade falharem.
 - Blockchain fica atras de feature flag para preservar foco do MVP.
 - A complexidade operacional aumenta, entao a primeira sprint inclui automacao, observabilidade e ambiente local.

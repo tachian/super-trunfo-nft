@@ -8,13 +8,13 @@ Periodo: 18 de maio de 2026 a 29 de maio de 2026
 
 Objetivo: deixar o monorepo pronto para desenvolvimento colaborativo e entregas continuas.
 
-| ID     | Tarefa                                            | Criterios de aceite                                                                             |
-| ------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| ST-001 | Criar monorepo publico com estrutura base         | Repositorio criado, README, licenca, pastas principais e convencao de commits documentados.     |
-| ST-002 | Criar backlog, roadmap, sprints e rastreabilidade | Documentos em `docs/project` com epicos, tarefas, datas e origem nos requisitos do PDF.         |
-| ST-003 | Definir arquitetura DDD/hexagonal e shared kernel | ADR criado, contextos mapeados e contratos de dominio inicializados.                            |
-| ST-004 | Criar pipeline CI/CD base                         | GitHub Actions validando lint, testes, build Docker, scan e deploy staging/producao controlado. |
-| ST-005 | Criar ambiente local                              | Docker Compose com Postgres, Redis, RabbitMQ, OpenSearch e servicos de exemplo.                 |
+| ID     | Tarefa                                            | Criterios de aceite                                                                                                                                   |
+| ------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ST-001 | Criar monorepo publico com estrutura base         | Repositorio criado, README, licenca, pastas principais e convencao de commits documentados.                                                           |
+| ST-002 | Criar backlog, roadmap, sprints e rastreabilidade | Documentos em `docs/project` com epicos, tarefas, datas e origem nos requisitos do PDF.                                                               |
+| ST-003 | Definir arquitetura DDD/hexagonal e shared kernel | ADR criado, contextos mapeados e contratos de dominio inicializados.                                                                                  |
+| ST-004 | Criar pipeline CI/CD base                         | GitHub Actions validando lint, PEP8/Ruff, duplicacao, testes, build Docker, scan, SonarCloud quando configurado e deploy staging/producao controlado. |
+| ST-005 | Criar ambiente local                              | Docker Compose com Postgres, Redis, RabbitMQ, OpenSearch e servicos de exemplo.                                                                       |
 
 ## Sprint 1 - Identity e Onboarding
 
@@ -120,10 +120,10 @@ Periodo: 7 de setembro de 2026 a 18 de setembro de 2026
 
 Objetivo: aumentar retencao e preparar operacao em producao.
 
-| ID     | Tarefa                        | Criterios de aceite                                                   |
-| ------ | ----------------------------- | --------------------------------------------------------------------- |
-| ST-801 | Implementar amigos e convites | Jogador envia, aceita e recusa convites.                              |
-| ST-802 | Implementar notificacoes      | Push/in-app para convite, partida, loja, ranking e eventos.           |
-| ST-803 | Criar estrutura de temporadas | Duracao configuravel, reset parcial e recompensas planejadas.         |
-| ST-804 | Hardening de seguranca        | Rate limit, validacao server-side, secret scanning e checklist OWASP. |
-| ST-805 | Preparar release candidate    | Ambiente staging validado, dashboards ativos, runbooks e rollback.    |
+| ID     | Tarefa                        | Criterios de aceite                                                                                        |
+| ------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| ST-801 | Implementar amigos e convites | Jogador envia, aceita e recusa convites.                                                                   |
+| ST-802 | Implementar notificacoes      | Push/in-app para convite, partida, loja, ranking e eventos.                                                |
+| ST-803 | Criar estrutura de temporadas | Duracao configuravel, reset parcial e recompensas planejadas.                                              |
+| ST-804 | Hardening de seguranca        | Rate limit, validacao server-side, logs mascarados LGPD, secret scanning, quality gates e checklist OWASP. |
+| ST-805 | Preparar release candidate    | Ambiente staging validado, dashboards ativos, runbooks e rollback.                                         |

@@ -22,14 +22,18 @@
 - Historia ligada a um epico e a uma sprint.
 - Criterios de aceite escritos.
 - Dependencias tecnicas mapeadas.
+- Contexto DDD, agregado/caso de uso e camada afetada identificados.
 - Eventos de dominio e APIs descritos quando aplicavel.
-- Impacto em seguranca, observabilidade e testes avaliado.
+- Impacto em SOLID, seguranca, observabilidade, LGPD e testes avaliado.
 
 ## Definition of Done
 
 - Codigo ou documentacao revisados localmente.
+- Servicos mantem estrutura DDD/hexagonal uniforme e dependem de portas/adapters para I/O.
+- Codigo novo respeita SOLID e evita duplicacao relevante.
 - Testes relevantes adicionados ou atualizados.
-- Healthcheck e logs estruturados quando houver servico.
+- Healthcheck, logs estruturados e mascaramento de dados sensiveis quando houver servico.
+- CI passa com lint, PEP8/Ruff, duplicacao, testes, contratos e scans de vulnerabilidade.
 - Docker/CI atualizado quando a tarefa alterar build ou runtime.
 - Commit com o ID da tarefa.
 - Push para GitHub ao final da tarefa.
