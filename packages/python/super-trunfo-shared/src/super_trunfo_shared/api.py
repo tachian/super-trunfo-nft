@@ -1,7 +1,9 @@
 import logging
+import os
 from collections.abc import Iterable
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -12,6 +14,18 @@ from .observability import (
     new_correlation_id,
     parse_json_body,
 )
+
+DEFAULT_CORS_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000"
+
+
+def cors_origins_from_environment() -> list[str]:
+    configured_origins = os.getenv("SUPER_TRUNFO_CORS_ORIGINS", DEFAULT_CORS_ORIGINS)
+
+    return [
+        origin.strip()
+        for origin in configured_origins.split(",")
+        if origin.strip()
+    ]
 
 
 def register_request_logging(app: FastAPI, *, service_name: str, context: str) -> None:
@@ -82,6 +96,12 @@ def create_service_app(
         title=service_name,
         version="0.1.0",
         description=f"{service_name} handles the {context} bounded context.",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_headers=["authorization", "content-type", "x-correlation-id"],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_origins=cors_origins_from_environment(),
     )
     register_request_logging(app, service_name=service_name, context=context)
 

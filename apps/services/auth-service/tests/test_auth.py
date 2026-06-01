@@ -68,6 +68,26 @@ async def test_login_player_returns_jwt_for_existing_player() -> None:
 
 
 @pytest.mark.anyio
+async def test_auth_service_allows_web_app_cors_preflight() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.options(
+            "/auth/login",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+    assert "POST" in response.headers["access-control-allow-methods"]
+
+
+@pytest.mark.anyio
 async def test_current_player_profile_returns_authenticated_profile() -> None:
     async with AsyncClient(
         transport=ASGITransport(app=app),
