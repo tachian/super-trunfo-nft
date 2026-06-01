@@ -1,18 +1,27 @@
 import re
+from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Header, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 from app.application.use_cases import (
     AuthResult,
+    GetCurrentPlayerProfile,
+    GetCurrentPlayerProfileQuery,
     LoginPlayer,
     LoginPlayerCommand,
     RegisterPlayer,
     RegisterPlayerCommand,
 )
-from app.domain.exceptions import InvalidCredentialsError, PlayerAlreadyExistsError
+from app.domain.entities import Player
+from app.domain.exceptions import (
+    InvalidAccessTokenError,
+    InvalidCredentialsError,
+    PlayerAlreadyExistsError,
+    PlayerNotFoundError,
+)
 
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -63,6 +72,16 @@ class PlayerResponse(BaseModel):
     nickname: str
     rating: int
     credits: int
+
+
+class SocialLoginMetadataResponse(BaseModel):
+    provider: str
+    subject: str | None = None
+
+
+class PlayerProfileResponse(PlayerResponse):
+    created_at: datetime
+    social_login: SocialLoginMetadataResponse
 
 
 class AuthResponse(BaseModel):
@@ -120,9 +139,28 @@ def create_identity_router() -> APIRouter:
 
         return auth_response(result)
 
-    @router.get("/players/me", status_code=status.HTTP_202_ACCEPTED)
-    async def current_player_profile() -> dict[str, str]:
-        return {"service": "auth-service", "status": "planned", "task": "ST-102"}
+    @router.get(
+        "/players/me",
+        response_model=PlayerProfileResponse,
+        responses={401: {"description": "Invalid or missing bearer token"}},
+    )
+    async def current_player_profile(
+        request: Request,
+        authorization: Annotated[str | None, Header(alias="Authorization")] = None,
+    ) -> PlayerProfileResponse | JSONResponse:
+        access_token = extract_bearer_token(authorization)
+
+        if access_token is None:
+            return authentication_error()
+
+        use_case = GetCurrentPlayerProfile(request.app.state.player_repository)
+
+        try:
+            player = use_case.execute(GetCurrentPlayerProfileQuery(access_token=access_token))
+        except (InvalidAccessTokenError, PlayerNotFoundError):
+            return authentication_error()
+
+        return player_profile_response(player)
 
     return router
 
@@ -138,4 +176,37 @@ def auth_response(result: AuthResult) -> AuthResponse:
             rating=result.player.rating,
             credits=result.player.credits,
         ),
+    )
+
+
+def player_profile_response(player: Player) -> PlayerProfileResponse:
+    return PlayerProfileResponse(
+        id=str(player.id),
+        nickname=player.nickname,
+        rating=player.rating,
+        credits=player.credits,
+        created_at=player.created_at,
+        social_login=SocialLoginMetadataResponse(
+            provider=player.social_login_provider,
+            subject=player.social_login_subject,
+        ),
+    )
+
+
+def extract_bearer_token(authorization: str | None) -> str | None:
+    if authorization is None:
+        return None
+
+    scheme, _, token = authorization.partition(" ")
+
+    if scheme.lower() != "bearer" or not token.strip():
+        return None
+
+    return token.strip()
+
+
+def authentication_error() -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": "Invalid or missing bearer token."},
     )

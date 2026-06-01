@@ -65,6 +65,65 @@ async def test_login_player_returns_jwt_for_existing_player() -> None:
 
 
 @pytest.mark.anyio
+async def test_current_player_profile_returns_authenticated_profile() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        register_response = await client.post(
+            "/auth/register",
+            json={
+                "nickname": "ProfilePlayer",
+                "email": "profile@example.com",
+                "password": "strong-password",
+            },
+        )
+        access_token = register_response.json()["access_token"]
+        profile_response = await client.get(
+            "/players/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+    body = profile_response.json()
+
+    assert profile_response.status_code == 200
+    assert body["id"] == register_response.json()["player"]["id"]
+    assert body["nickname"] == "ProfilePlayer"
+    assert body["rating"] == 1000
+    assert body["credits"] == 0
+    assert body["created_at"]
+    assert body["social_login"] == {"provider": "credentials", "subject": None}
+    assert "email" not in body
+
+
+@pytest.mark.anyio
+async def test_current_player_profile_requires_bearer_token() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.get("/players/me")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or missing bearer token."}
+
+
+@pytest.mark.anyio
+async def test_current_player_profile_rejects_invalid_bearer_token() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.get(
+            "/players/me",
+            headers={"Authorization": "Bearer invalid-token"},
+        )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or missing bearer token."}
+
+
+@pytest.mark.anyio
 async def test_duplicate_player_is_rejected() -> None:
     payload = {
         "nickname": "Duplicate",

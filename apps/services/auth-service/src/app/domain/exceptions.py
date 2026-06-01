@@ -8,3 +8,11 @@ class PlayerAlreadyExistsError(IdentityError):
 
 class InvalidCredentialsError(IdentityError):
     """Raised when authentication fails without exposing which field failed."""
+
+
+class InvalidAccessTokenError(IdentityError):
+    """Raised when a bearer token cannot authenticate a player."""
+
+
+class PlayerNotFoundError(IdentityError):
+    """Raised when an authenticated subject does not map to a known player."""

@@ -11,6 +11,8 @@ class Player:
     id: UUID = field(default_factory=uuid4)
     rating: int = 1000
     credits: int = 0
+    social_login_provider: str = "credentials"
+    social_login_subject: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 

@@ -1,10 +1,20 @@
 from dataclasses import dataclass
 
 from app.domain.entities import AuthSession, Player
-from app.domain.exceptions import InvalidCredentialsError, PlayerAlreadyExistsError
+from app.domain.exceptions import (
+    InvalidCredentialsError,
+    PlayerAlreadyExistsError,
+    PlayerNotFoundError,
+)
 from app.domain.repositories import PlayerRepository
 
-from .security import JWT_TTL_SECONDS, create_access_token, hash_password, verify_password
+from .security import (
+    JWT_TTL_SECONDS,
+    create_access_token,
+    hash_password,
+    verify_access_token,
+    verify_password,
+)
 
 
 @dataclass(frozen=True)
@@ -18,6 +28,11 @@ class RegisterPlayerCommand:
 class LoginPlayerCommand:
     email: str
     password: str
+
+
+@dataclass(frozen=True)
+class GetCurrentPlayerProfileQuery:
+    access_token: str
 
 
 @dataclass(frozen=True)
@@ -59,6 +74,20 @@ class LoginPlayer:
             raise InvalidCredentialsError("invalid credentials")
 
         return AuthResult(player=player, session=create_session(player))
+
+
+class GetCurrentPlayerProfile:
+    def __init__(self, repository: PlayerRepository) -> None:
+        self.repository = repository
+
+    def execute(self, query: GetCurrentPlayerProfileQuery) -> Player:
+        player_id = verify_access_token(query.access_token)
+        player = self.repository.find_by_id(player_id)
+
+        if player is None:
+            raise PlayerNotFoundError("player not found")
+
+        return player
 
 
 def create_session(player: Player) -> AuthSession:

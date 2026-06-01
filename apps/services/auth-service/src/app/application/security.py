@@ -1,10 +1,13 @@
 import base64
+import binascii
 import hashlib
 import hmac
 import json
 import os
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
+
+from app.domain.exceptions import InvalidAccessTokenError
 
 JWT_ALGORITHM = "HS256"
 JWT_ISSUER = "super-trunfo-auth-service"
@@ -14,6 +17,11 @@ PASSWORD_ITERATIONS = 120_000
 
 def base64url_encode(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def base64url_decode(data: str) -> bytes:
+    padding = "=" * (-len(data) % 4)
+    return base64.urlsafe_b64decode(f"{data}{padding}")
 
 
 def json_base64url(payload: dict[str, object]) -> str:
@@ -81,3 +89,50 @@ def create_access_token(
     ).digest()
 
     return f"{signing_input}.{base64url_encode(signature)}"
+
+
+def verify_access_token(
+    token: str,
+    *,
+    secret: str | None = None,
+    now: datetime | None = None,
+) -> UUID:
+    try:
+        encoded_header, encoded_payload, encoded_signature = token.split(".", 2)
+        header = json.loads(base64url_decode(encoded_header).decode("utf-8"))
+        payload = json.loads(base64url_decode(encoded_payload).decode("utf-8"))
+    except (ValueError, binascii.Error, json.JSONDecodeError, UnicodeDecodeError):
+        raise InvalidAccessTokenError("invalid access token") from None
+
+    if header.get("alg") != JWT_ALGORITHM or payload.get("iss") != JWT_ISSUER:
+        raise InvalidAccessTokenError("invalid access token")
+
+    signing_input = f"{encoded_header}.{encoded_payload}"
+    expected_signature = hmac.new(
+        (secret or current_jwt_secret()).encode("utf-8"),
+        signing_input.encode("ascii"),
+        hashlib.sha256,
+    ).digest()
+
+    try:
+        actual_signature = base64url_decode(encoded_signature)
+    except (ValueError, binascii.Error):
+        raise InvalidAccessTokenError("invalid access token") from None
+
+    if not hmac.compare_digest(expected_signature, actual_signature):
+        raise InvalidAccessTokenError("invalid access token")
+
+    expires_at = payload.get("exp")
+
+    if not isinstance(expires_at, int):
+        raise InvalidAccessTokenError("invalid access token")
+
+    current_time = now or datetime.now(UTC)
+
+    if expires_at <= int(current_time.timestamp()):
+        raise InvalidAccessTokenError("invalid access token")
+
+    try:
+        return UUID(str(payload["sub"]))
+    except (KeyError, ValueError):
+        raise InvalidAccessTokenError("invalid access token") from None

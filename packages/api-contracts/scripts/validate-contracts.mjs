@@ -26,6 +26,9 @@ const requiredAuthContractFragments = [
   '$ref: "#/components/schemas/RegisterPlayerRequest"',
   '$ref: "#/components/schemas/LoginPlayerRequest"',
   '$ref: "#/components/schemas/AuthResponse"',
+  "operationId: getCurrentPlayerProfile",
+  '$ref: "#/components/schemas/PlayerProfile"',
+  "bearerAuth:",
 ];
 
 for (const fragment of requiredAuthContractFragments) {

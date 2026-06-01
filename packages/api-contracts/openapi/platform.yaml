@@ -44,6 +44,22 @@ paths:
                 $ref: "#/components/schemas/AuthResponse"
         "409":
           description: Email or nickname already registered
+  /players/me:
+    get:
+      summary: Get current player profile
+      operationId: getCurrentPlayerProfile
+      tags: [Identity]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current authenticated player profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerProfile"
+        "401":
+          description: Invalid or missing bearer token
   /cards:
     get:
       summary: List player cards
@@ -136,6 +152,11 @@ paths:
         "202":
           description: Planned endpoint
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     AuthResponse:
       type: object
@@ -180,6 +201,17 @@ components:
           type: integer
         credits:
           type: integer
+    PlayerProfile:
+      allOf:
+        - $ref: "#/components/schemas/PlayerSummary"
+        - type: object
+          required: [created_at, social_login]
+          properties:
+            created_at:
+              type: string
+              format: date-time
+            social_login:
+              $ref: "#/components/schemas/SocialLoginMetadata"
     RegisterPlayerRequest:
       type: object
       required: [nickname, email, password]
@@ -197,3 +229,14 @@ components:
           minLength: 8
           maxLength: 128
           writeOnly: true
+    SocialLoginMetadata:
+      type: object
+      required: [provider]
+      properties:
+        provider:
+          type: string
+          enum: [credentials, google, apple, facebook]
+        subject:
+          type:
+            - string
+            - "null"

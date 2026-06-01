@@ -1,4 +1,5 @@
 from typing import Protocol
+from uuid import UUID
 
 from .entities import Player
 
@@ -12,3 +13,6 @@ class PlayerRepository(Protocol):
 
     def find_by_nickname(self, nickname: str) -> Player | None:
         """Find a player by normalized nickname."""
+
+    def find_by_id(self, player_id: UUID) -> Player | None:
+        """Find a player by id."""
