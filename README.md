@@ -38,6 +38,29 @@ docs/
 7. Preparacao NFT/marketplace atras de feature flags.
 8. Social, notificacoes, observabilidade e release candidate.
 
+## Documentacao de projeto
+
+- [Visao do produto](docs/project/product-vision.md)
+- [Plano de implementacao do MVP](docs/project/mvp-implementation-plan.md)
+- [Mapa DDD e arquitetura hexagonal](docs/architecture/ddd-context-map.md)
+- [Ambiente local](docs/operations/local-development.md)
+- [Roadmap](docs/project/roadmap.md)
+- [Backlog](docs/project/backlog.md)
+- [Sprints e tarefas](docs/project/sprints.md)
+- [Rastreabilidade de requisitos](docs/project/requirements-traceability.md)
+- [ADR 0001 - Arquitetura base](docs/adr/0001-base-architecture.md)
+
+## Politica de commits
+
+Cada tarefa concluida deve gerar commit pequeno e rastreavel, usando o ID da tarefa no prefixo:
+
+```text
+ST-001: scaffold monorepo foundation
+ST-201: implement card uniqueness hash
+```
+
+Ao final de cada tarefa, o commit deve ser enviado para o GitHub.
+
 ## Subir Ambiente Localhost
 
 Execute os comandos abaixo a partir da raiz do repositorio.
@@ -119,26 +142,3 @@ docker compose -f infra/docker/compose.yaml down --volumes
 ```
 
 Mais detalhes estao em [Ambiente local](docs/operations/local-development.md).
-
-## Documentacao de projeto
-
-- [Visao do produto](docs/project/product-vision.md)
-- [Plano de implementacao do MVP](docs/project/mvp-implementation-plan.md)
-- [Mapa DDD e arquitetura hexagonal](docs/architecture/ddd-context-map.md)
-- [Ambiente local](docs/operations/local-development.md)
-- [Roadmap](docs/project/roadmap.md)
-- [Backlog](docs/project/backlog.md)
-- [Sprints e tarefas](docs/project/sprints.md)
-- [Rastreabilidade de requisitos](docs/project/requirements-traceability.md)
-- [ADR 0001 - Arquitetura base](docs/adr/0001-base-architecture.md)
-
-## Politica de commits
-
-Cada tarefa concluida deve gerar commit pequeno e rastreavel, usando o ID da tarefa no prefixo:
-
-```text
-ST-001: scaffold monorepo foundation
-ST-201: implement card uniqueness hash
-```
-
-Ao final de cada tarefa, o commit deve ser enviado para o GitHub.
