@@ -156,10 +156,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript,python
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
       - uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
@@ -170,7 +170,7 @@ jobs:
           ignore-unfixed: true
           severity: HIGH,CRITICAL
           vuln-type: os,library
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-results.sarif
