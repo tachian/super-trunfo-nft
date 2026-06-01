@@ -9,12 +9,18 @@ contexts:
     commands:
       - RegisterPlayer
       - LoginPlayer
+      - GrantInitialOnboarding
       - UpdatePlayerProfile
     queries:
       - GetCurrentPlayerProfile
     events:
       - PlayerRegistered
       - PlayerLoggedIn
+      - InitialOnboardingGranted
+    invariants:
+      - First access grants exactly 9 non-legendary balanced cards.
+      - First access grants exactly 1 credit for the tenth card.
+      - Initial onboarding grant must be idempotent per player.
   cards:
     service: card-service
     aggregates:

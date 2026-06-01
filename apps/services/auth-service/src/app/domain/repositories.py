@@ -8,6 +8,9 @@ class PlayerRepository(Protocol):
     def add(self, player: Player) -> None:
         """Persist a new player."""
 
+    def save(self, player: Player) -> None:
+        """Persist changes to an existing player aggregate."""
+
     def find_by_email(self, email: str) -> Player | None:
         """Find a player by normalized email."""
 

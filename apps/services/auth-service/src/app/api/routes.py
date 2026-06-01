@@ -15,7 +15,7 @@ from app.application.use_cases import (
     RegisterPlayer,
     RegisterPlayerCommand,
 )
-from app.domain.entities import Player
+from app.domain.entities import CreditLedgerEntry, InitialDeckCard, OnboardingRewards, Player
 from app.domain.exceptions import (
     InvalidAccessTokenError,
     InvalidCredentialsError,
@@ -79,9 +79,38 @@ class SocialLoginMetadataResponse(BaseModel):
     subject: str | None = None
 
 
+class InitialDeckCardResponse(BaseModel):
+    id: str
+    name: str
+    level: int
+    expires_at: datetime
+    family: str
+    rarity_label: str
+    speed: int
+    strength: int
+    intelligence: int
+    resistance: int
+    rarity: int
+
+
+class CreditLedgerEntryResponse(BaseModel):
+    id: str
+    amount: int
+    reason: str
+    created_at: datetime
+
+
+class OnboardingRewardsResponse(BaseModel):
+    initial_deck: list[InitialDeckCardResponse]
+    initial_credits: int
+    credit_ledger: list[CreditLedgerEntryResponse]
+    granted_at: datetime
+
+
 class PlayerProfileResponse(PlayerResponse):
     created_at: datetime
     social_login: SocialLoginMetadataResponse
+    onboarding: OnboardingRewardsResponse
 
 
 class AuthResponse(BaseModel):
@@ -89,6 +118,7 @@ class AuthResponse(BaseModel):
     token_type: str
     expires_in: int
     player: PlayerResponse
+    onboarding: OnboardingRewardsResponse
 
 
 def create_identity_router() -> APIRouter:
@@ -176,6 +206,7 @@ def auth_response(result: AuthResult) -> AuthResponse:
             rating=result.player.rating,
             credits=result.player.credits,
         ),
+        onboarding=onboarding_response(result.player.onboarding),
     )
 
 
@@ -190,6 +221,44 @@ def player_profile_response(player: Player) -> PlayerProfileResponse:
             provider=player.social_login_provider,
             subject=player.social_login_subject,
         ),
+        onboarding=onboarding_response(player.onboarding),
+    )
+
+
+def onboarding_response(rewards: OnboardingRewards | None) -> OnboardingRewardsResponse:
+    if rewards is None:
+        raise RuntimeError("player onboarding must be granted before serializing response")
+
+    return OnboardingRewardsResponse(
+        initial_deck=[initial_deck_card_response(card) for card in rewards.initial_deck],
+        initial_credits=rewards.initial_credits,
+        credit_ledger=[credit_ledger_entry_response(entry) for entry in rewards.credit_ledger],
+        granted_at=rewards.granted_at,
+    )
+
+
+def initial_deck_card_response(card: InitialDeckCard) -> InitialDeckCardResponse:
+    return InitialDeckCardResponse(
+        id=str(card.id),
+        name=card.name,
+        family=card.family,
+        rarity_label=card.rarity_label,
+        speed=card.speed,
+        strength=card.strength,
+        intelligence=card.intelligence,
+        resistance=card.resistance,
+        rarity=card.rarity,
+        level=card.level,
+        expires_at=card.expires_at,
+    )
+
+
+def credit_ledger_entry_response(entry: CreditLedgerEntry) -> CreditLedgerEntryResponse:
+    return CreditLedgerEntryResponse(
+        id=str(entry.id),
+        amount=entry.amount,
+        reason=entry.reason,
+        created_at=entry.created_at,
     )
 
 

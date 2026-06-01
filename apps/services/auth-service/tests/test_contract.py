@@ -17,6 +17,8 @@ def test_auth_service_openapi_exposes_register_and_login_contracts() -> None:
     assert "409" in register["responses"]
     assert "200" in login["responses"]
     assert "401" in login["responses"]
+    assert "InitialDeckCardResponse" in openapi["components"]["schemas"]
+    assert "OnboardingRewardsResponse" in openapi["components"]["schemas"]
     assert "200" in profile["responses"]
     assert "401" in profile["responses"]
 
@@ -36,3 +38,5 @@ def test_platform_contract_documents_authentication_endpoints() -> None:
     assert "201" in register["responses"]
     assert "200" in login["responses"]
     assert "200" in profile["responses"]
+    assert "InitialDeckCard" in contract["components"]["schemas"]
+    assert "OnboardingRewards" in contract["components"]["schemas"]

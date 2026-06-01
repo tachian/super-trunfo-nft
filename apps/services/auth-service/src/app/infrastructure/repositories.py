@@ -12,6 +12,9 @@ class InMemoryPlayerRepository:
         self._lock = Lock()
 
     def add(self, player: Player) -> None:
+        self.save(player)
+
+    def save(self, player: Player) -> None:
         with self._lock:
             self._players_by_email[player.email.lower()] = player
             self._players_by_id[player.id] = player

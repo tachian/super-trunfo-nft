@@ -5,6 +5,9 @@ events:
   - name: PlayerLoggedIn
     producer: auth-service
     consumers: [notification-service]
+  - name: InitialOnboardingGranted
+    producer: auth-service
+    consumers: [card-service, economy-service, notification-service]
   - name: CardCreated
     producer: card-service
     consumers: [nft-service, economy-service, ranking-service]

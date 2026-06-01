@@ -28,6 +28,9 @@ const requiredAuthContractFragments = [
   '$ref: "#/components/schemas/AuthResponse"',
   "operationId: getCurrentPlayerProfile",
   '$ref: "#/components/schemas/PlayerProfile"',
+  '$ref: "#/components/schemas/OnboardingRewards"',
+  '$ref: "#/components/schemas/InitialDeckCard"',
+  "initial_deck_tenth_card_credit",
   "bearerAuth:",
 ];
 

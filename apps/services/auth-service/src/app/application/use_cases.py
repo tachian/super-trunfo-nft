@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.domain.entities import AuthSession, Player
+from app.domain.entities import AuthSession, Player, grant_initial_onboarding
 from app.domain.exceptions import (
     InvalidCredentialsError,
     PlayerAlreadyExistsError,
@@ -52,10 +52,12 @@ class RegisterPlayer:
         if self.repository.find_by_email(email) or self.repository.find_by_nickname(nickname):
             raise PlayerAlreadyExistsError("player already exists")
 
-        player = Player(
-            nickname=nickname,
-            email=email,
-            password_hash=hash_password(command.password),
+        player = grant_initial_onboarding(
+            Player(
+                nickname=nickname,
+                email=email,
+                password_hash=hash_password(command.password),
+            )
         )
         self.repository.add(player)
 
@@ -87,7 +89,12 @@ class GetCurrentPlayerProfile:
         if player is None:
             raise PlayerNotFoundError("player not found")
 
-        return player
+        player_with_onboarding = grant_initial_onboarding(player)
+
+        if player_with_onboarding != player:
+            self.repository.save(player_with_onboarding)
+
+        return player_with_onboarding
 
 
 def create_session(player: Player) -> AuthSession:

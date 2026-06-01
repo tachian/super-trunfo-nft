@@ -160,7 +160,7 @@ components:
   schemas:
     AuthResponse:
       type: object
-      required: [access_token, token_type, expires_in, player]
+      required: [access_token, token_type, expires_in, player, onboarding]
       properties:
         access_token:
           type: string
@@ -173,6 +173,74 @@ components:
           minimum: 1
         player:
           $ref: "#/components/schemas/PlayerSummary"
+        onboarding:
+          $ref: "#/components/schemas/OnboardingRewards"
+    CreditLedgerEntry:
+      type: object
+      required: [id, amount, reason, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          enum: [initial_deck_tenth_card_credit]
+        created_at:
+          type: string
+          format: date-time
+    InitialDeckCard:
+      type: object
+      required:
+        - id
+        - name
+        - family
+        - rarity_label
+        - speed
+        - strength
+        - intelligence
+        - resistance
+        - rarity
+        - level
+        - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        family:
+          type: string
+        rarity_label:
+          type: string
+          enum: [common, rare, epic]
+        speed:
+          type: integer
+          minimum: 45
+          maximum: 72
+        strength:
+          type: integer
+          minimum: 45
+          maximum: 72
+        intelligence:
+          type: integer
+          minimum: 45
+          maximum: 72
+        resistance:
+          type: integer
+          minimum: 45
+          maximum: 72
+        rarity:
+          type: integer
+          minimum: 50
+          maximum: 70
+        level:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
     LoginPlayerRequest:
       type: object
       required: [email, password]
@@ -205,13 +273,36 @@ components:
       allOf:
         - $ref: "#/components/schemas/PlayerSummary"
         - type: object
-          required: [created_at, social_login]
+          required: [created_at, social_login, onboarding]
           properties:
             created_at:
               type: string
               format: date-time
             social_login:
               $ref: "#/components/schemas/SocialLoginMetadata"
+            onboarding:
+              $ref: "#/components/schemas/OnboardingRewards"
+    OnboardingRewards:
+      type: object
+      required: [initial_deck, initial_credits, credit_ledger, granted_at]
+      properties:
+        initial_deck:
+          type: array
+          minItems: 9
+          maxItems: 9
+          items:
+            $ref: "#/components/schemas/InitialDeckCard"
+        initial_credits:
+          type: integer
+          enum: [1]
+        credit_ledger:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreditLedgerEntry"
+        granted_at:
+          type: string
+          format: date-time
     RegisterPlayerRequest:
       type: object
       required: [nickname, email, password]
