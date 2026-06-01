@@ -40,4 +40,23 @@ for (const fragment of requiredAuthContractFragments) {
   }
 }
 
+const domainEventsContract = readFileSync(
+  join(packageRoot, "events/domain-events.yaml"),
+  "utf8",
+);
+const requiredIdentityEventFragments = [
+  "name: PlayerRegistered",
+  "name: PlayerLoggedIn",
+  "version: 1.0.0",
+  "initial_deck_size: integer",
+  "initial_credits: integer",
+  "player_id: uuid",
+];
+
+for (const fragment of requiredIdentityEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing identity event contract fragment: ${fragment}`);
+  }
+}
+
 console.log("API contracts present.");

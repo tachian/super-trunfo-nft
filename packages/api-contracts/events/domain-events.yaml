@@ -1,10 +1,24 @@
 events:
   - name: PlayerRegistered
+    version: 1.0.0
     producer: auth-service
     consumers: [card-service, notification-service]
+    payload:
+      schema_version: string
+      player_id: uuid
+      provider: string
+      rating: integer
+      credits: integer
+      initial_deck_size: integer
+      initial_credits: integer
   - name: PlayerLoggedIn
+    version: 1.0.0
     producer: auth-service
     consumers: [notification-service]
+    payload:
+      schema_version: string
+      player_id: uuid
+      provider: string
   - name: InitialOnboardingGranted
     producer: auth-service
     consumers: [card-service, economy-service, notification-service]

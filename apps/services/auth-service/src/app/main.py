@@ -1,6 +1,7 @@
 from super_trunfo_shared.api import create_service_app
 
 from app.api.routes import create_identity_router
+from app.infrastructure.publishers import InMemoryDomainEventPublisher
 from app.infrastructure.repositories import InMemoryPlayerRepository
 
 SERVICE_NAME = "auth-service"
@@ -17,4 +18,8 @@ app = create_service_app(
     planned_routes=PLANNED_ROUTES,
 )
 app.state.player_repository = InMemoryPlayerRepository()
+app.state.domain_event_publisher = InMemoryDomainEventPublisher(
+    service_name=SERVICE_NAME,
+    context=CONTEXT,
+)
 app.include_router(create_identity_router())

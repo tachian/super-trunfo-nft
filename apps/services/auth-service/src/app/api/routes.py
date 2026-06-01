@@ -131,7 +131,10 @@ def create_identity_router() -> APIRouter:
         responses={409: {"description": "Email or nickname already registered"}},
     )
     async def register_player(payload: RegisterPlayerRequest, request: Request) -> AuthResponse:
-        use_case = RegisterPlayer(request.app.state.player_repository)
+        use_case = RegisterPlayer(
+            request.app.state.player_repository,
+            request.app.state.domain_event_publisher,
+        )
 
         try:
             result = use_case.execute(
@@ -155,7 +158,10 @@ def create_identity_router() -> APIRouter:
         responses={401: {"description": "Invalid credentials"}},
     )
     async def login_player(payload: LoginPlayerRequest, request: Request) -> AuthResponse:
-        use_case = LoginPlayer(request.app.state.player_repository)
+        use_case = LoginPlayer(
+            request.app.state.player_repository,
+            request.app.state.domain_event_publisher,
+        )
 
         try:
             result = use_case.execute(

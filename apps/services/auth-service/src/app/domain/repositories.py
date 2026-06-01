@@ -1,7 +1,14 @@
 from typing import Protocol
 from uuid import UUID
 
+from super_trunfo_shared import DomainEvent
+
 from .entities import Player
+
+
+class DomainEventPublisher(Protocol):
+    def publish(self, event: DomainEvent) -> None:
+        """Publish a domain event to the platform event bus."""
 
 
 class PlayerRepository(Protocol):

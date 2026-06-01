@@ -8,8 +8,9 @@ from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture(autouse=True)
-def clear_player_repository() -> None:
+def clear_auth_service_state() -> None:
     app.state.player_repository.clear()
+    app.state.domain_event_publisher.clear()
 
 
 @pytest.mark.anyio
@@ -41,6 +42,39 @@ async def test_register_player_returns_jwt_without_sensitive_player_data() -> No
 
 
 @pytest.mark.anyio
+async def test_register_player_publishes_player_registered_event() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/auth/register",
+            json={
+                "nickname": "AuditPlayer",
+                "email": "audit@example.com",
+                "password": "strong-password",
+            },
+        )
+
+    body = response.json()
+    events = app.state.domain_event_publisher.published_events()
+
+    assert response.status_code == 201
+    assert len(events) == 1
+    assert events[0].name == "PlayerRegistered"
+    assert events[0].aggregate_id == body["player"]["id"]
+    assert events[0].payload == {
+        "schema_version": "1.0.0",
+        "player_id": body["player"]["id"],
+        "provider": "credentials",
+        "rating": 1000,
+        "credits": 1,
+        "initial_deck_size": 9,
+        "initial_credits": 1,
+    }
+
+
+@pytest.mark.anyio
 async def test_login_player_returns_jwt_for_existing_player() -> None:
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -54,6 +88,7 @@ async def test_login_player_returns_jwt_for_existing_player() -> None:
                 "password": "strong-password",
             },
         )
+        app.state.domain_event_publisher.clear()
         response = await client.post(
             "/auth/login",
             json={"email": "player@example.com", "password": "strong-password"},
@@ -65,6 +100,72 @@ async def test_login_player_returns_jwt_for_existing_player() -> None:
     assert body["token_type"] == "bearer"
     assert body["player"]["nickname"] == "PlayerOne"
     assert_initial_onboarding(body["onboarding"])
+
+
+@pytest.mark.anyio
+async def test_login_player_publishes_player_logged_in_event() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        register_response = await client.post(
+            "/auth/register",
+            json={
+                "nickname": "LoginAuditPlayer",
+                "email": "login-audit@example.com",
+                "password": "strong-password",
+            },
+        )
+        app.state.domain_event_publisher.clear()
+        response = await client.post(
+            "/auth/login",
+            json={"email": "login-audit@example.com", "password": "strong-password"},
+        )
+
+    player_id = register_response.json()["player"]["id"]
+    events = app.state.domain_event_publisher.published_events()
+
+    assert response.status_code == 200
+    assert len(events) == 1
+    assert events[0].name == "PlayerLoggedIn"
+    assert events[0].aggregate_id == player_id
+    assert events[0].payload == {
+        "schema_version": "1.0.0",
+        "player_id": player_id,
+        "provider": "credentials",
+    }
+
+
+@pytest.mark.anyio
+async def test_auth_audit_event_logs_do_not_expose_credentials(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        await client.post(
+            "/auth/register",
+            json={
+                "nickname": "Safe Event",
+                "email": "safe-event@example.com",
+                "password": "strong-password",
+            },
+        )
+
+    publish_logs = [
+        record
+        for record in caplog.records
+        if getattr(record, "event", None) == "domain.event.publish.requested"
+        and getattr(record, "domain_event_name", None) == "PlayerRegistered"
+    ]
+
+    assert publish_logs
+    assert "email" not in publish_logs[-1].event_payload
+    assert "password" not in publish_logs[-1].event_payload
+    assert publish_logs[-1].event_payload["player_id"]
 
 
 @pytest.mark.anyio

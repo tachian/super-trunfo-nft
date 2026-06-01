@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 
 from app.domain.entities import AuthSession, Player, grant_initial_onboarding
+from app.domain.events import player_logged_in_event, player_registered_event
 from app.domain.exceptions import (
     InvalidCredentialsError,
     PlayerAlreadyExistsError,
     PlayerNotFoundError,
 )
-from app.domain.repositories import PlayerRepository
+from app.domain.repositories import DomainEventPublisher, PlayerRepository
 
 from .security import (
     JWT_TTL_SECONDS,
@@ -42,8 +43,13 @@ class AuthResult:
 
 
 class RegisterPlayer:
-    def __init__(self, repository: PlayerRepository) -> None:
+    def __init__(
+        self,
+        repository: PlayerRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
         self.repository = repository
+        self.event_publisher = event_publisher
 
     def execute(self, command: RegisterPlayerCommand) -> AuthResult:
         email = command.email.strip().lower()
@@ -60,13 +66,19 @@ class RegisterPlayer:
             )
         )
         self.repository.add(player)
+        self.event_publisher.publish(player_registered_event(player))
 
         return AuthResult(player=player, session=create_session(player))
 
 
 class LoginPlayer:
-    def __init__(self, repository: PlayerRepository) -> None:
+    def __init__(
+        self,
+        repository: PlayerRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
         self.repository = repository
+        self.event_publisher = event_publisher
 
     def execute(self, command: LoginPlayerCommand) -> AuthResult:
         email = command.email.strip().lower()
@@ -74,6 +86,8 @@ class LoginPlayer:
 
         if player is None or not verify_password(command.password, player.password_hash):
             raise InvalidCredentialsError("invalid credentials")
+
+        self.event_publisher.publish(player_logged_in_event(player))
 
         return AuthResult(player=player, session=create_session(player))
 
