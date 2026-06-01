@@ -40,6 +40,20 @@ for (const fragment of requiredAuthContractFragments) {
   }
 }
 
+const requiredCardContractFragments = [
+  "Card:",
+  "CardAttributes:",
+  "owner_id:",
+  "expires_at:",
+  "Derived from speed + strength + intelligence + resistance + rarity.",
+];
+
+for (const fragment of requiredCardContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing card contract fragment: ${fragment}`);
+  }
+}
+
 const domainEventsContract = readFileSync(
   join(packageRoot, "events/domain-events.yaml"),
   "utf8",

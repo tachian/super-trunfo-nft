@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
-from uuid import UUID
 
 CARD_ATTRIBUTES = ("speed", "strength", "intelligence", "resistance", "rarity")
 
@@ -14,24 +13,6 @@ class CardAttributes:
     intelligence: int
     resistance: int
     rarity: int
-
-
-@dataclass(frozen=True)
-class Card:
-    id: UUID
-    nft_token_id: str
-    name: str
-    image_url: str
-    speed: int
-    strength: int
-    intelligence: int
-    resistance: int
-    rarity: int
-    family: str
-    level: int
-    created_at: datetime
-    expires_at: datetime
-    owner_id: UUID
 
 
 def calculate_card_level(attributes: CardAttributes) -> int:
@@ -60,4 +41,3 @@ def card_uniqueness_hash(attributes: CardAttributes) -> str:
         f"{attributes.intelligence}-{attributes.resistance}-{attributes.rarity}"
     )
     return sha256(raw_value.encode("utf-8")).hexdigest()
-

@@ -44,6 +44,9 @@ contexts:
       - CardExpired
       - DeckSelected
     invariants:
+      - Card id and owner id must be UUID values.
+      - Card level is derived from speed, strength, intelligence, resistance and rarity.
+      - Card validity is represented by an expiration date after creation.
       - Cards cannot be fully identical.
       - Deck selection must contain exactly 10 valid cards.
       - Expired cards cannot be selected for active decks.

@@ -191,6 +191,58 @@ components:
         created_at:
           type: string
           format: date-time
+    Card:
+      type: object
+      required:
+        [id, owner_id, attributes, family, level, created_at, expires_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        attributes:
+          $ref: "#/components/schemas/CardAttributes"
+        family:
+          type: string
+          minLength: 1
+        level:
+          type: integer
+          description: Derived from speed + strength + intelligence + resistance + rarity.
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+    CardAttributes:
+      type: object
+      required: [name, speed, strength, intelligence, resistance, rarity]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        speed:
+          type: integer
+          minimum: 0
+          maximum: 100
+        strength:
+          type: integer
+          minimum: 0
+          maximum: 100
+        intelligence:
+          type: integer
+          minimum: 0
+          maximum: 100
+        resistance:
+          type: integer
+          minimum: 0
+          maximum: 100
+        rarity:
+          type: integer
+          minimum: 0
+          maximum: 100
     InitialDeckCard:
       type: object
       required:
