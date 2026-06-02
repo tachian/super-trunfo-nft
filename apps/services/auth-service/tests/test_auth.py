@@ -42,6 +42,45 @@ async def test_register_player_returns_jwt_without_sensitive_player_data() -> No
 
 
 @pytest.mark.anyio
+async def test_register_player_normalizes_email_without_regex() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/auth/register",
+            json={
+                "nickname": "EmailNormalizer",
+                "email": "  EMAIL.NORMALIZER@EXAMPLE.COM  ",
+                "password": "strong-password",
+            },
+        )
+
+    player = app.state.player_repository.find_by_email("email.normalizer@example.com")
+
+    assert response.status_code == 201
+    assert player is not None
+
+
+@pytest.mark.anyio
+async def test_register_player_rejects_invalid_email_format() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/auth/register",
+            json={
+                "nickname": "InvalidEmail",
+                "email": f"{'a' * 120}@example",
+                "password": "strong-password",
+            },
+        )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.anyio
 async def test_register_player_publishes_player_registered_event() -> None:
     async with AsyncClient(
         transport=ASGITransport(app=app),
