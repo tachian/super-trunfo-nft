@@ -23,8 +23,20 @@ events:
     producer: auth-service
     consumers: [card-service, economy-service, notification-service]
   - name: CardCreated
+    version: 1.0.0
     producer: card-service
     consumers: [nft-service, economy-service, ranking-service]
+    payload:
+      schema_version: string
+      card_id: uuid
+      owner_id: uuid
+      name: string
+      family: string
+      rarity: integer
+      level: integer
+      uniqueness_hash: string
+      expires_at: datetime
+      generation_batch_id: uuid
   - name: MatchStarted
     producer: matchmaking-service
     consumers: [gameplay-service, notification-service]

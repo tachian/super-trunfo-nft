@@ -1,7 +1,7 @@
+from super_trunfo_shared import InMemoryDomainEventPublisher
 from super_trunfo_shared.api import create_service_app
 
 from app.api.routes import create_identity_router
-from app.infrastructure.publishers import InMemoryDomainEventPublisher
 from app.infrastructure.repositories import InMemoryPlayerRepository
 
 SERVICE_NAME = "auth-service"
