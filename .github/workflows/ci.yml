@@ -113,28 +113,25 @@ jobs:
           - notification-service
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: infra/docker/fastapi-service.Dockerfile
-          push: false
-          build-args: |
-            SERVICE_DIR=apps/services/${{ matrix.service }}
-          tags: super-trunfo/${{ matrix.service }}:ci
+      - name: Build service image
+        run: |
+          docker build \
+            --file infra/docker/fastapi-service.Dockerfile \
+            --build-arg SERVICE_DIR=apps/services/${{ matrix.service }} \
+            --tag super-trunfo/${{ matrix.service }}:ci \
+            .
 
   docker-build-web:
     name: Docker build - web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: infra/docker/web.Dockerfile
-          push: false
-          tags: super-trunfo/web:ci
+      - name: Build web image
+        run: |
+          docker build \
+            --file infra/docker/web.Dockerfile \
+            --tag super-trunfo/web:ci \
+            .
 
   terraform:
     name: Terraform validate
