@@ -5,6 +5,7 @@ import logging
 import pytest
 from app.main import app
 from httpx import ASGITransport, AsyncClient
+from super_trunfo_shared.api import create_service_app
 
 
 @pytest.fixture(autouse=True)
@@ -208,9 +209,18 @@ async def test_auth_audit_event_logs_do_not_expose_credentials(
 
 
 @pytest.mark.anyio
-async def test_auth_service_allows_web_app_cors_preflight() -> None:
+async def test_auth_service_allows_configured_web_app_cors_preflight(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SUPER_TRUNFO_CORS_ORIGINS", "http://localhost:3000")
+    cors_app = create_service_app(
+        service_name="auth-service",
+        context="identity",
+        planned_routes=[],
+    )
+
     async with AsyncClient(
-        transport=ASGITransport(app=app),
+        transport=ASGITransport(app=cors_app),
         base_url="http://test",
     ) as client:
         response = await client.options(

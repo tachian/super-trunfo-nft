@@ -15,7 +15,7 @@ from .observability import (
     parse_json_body,
 )
 
-DEFAULT_CORS_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000"
+DEFAULT_CORS_ORIGINS = ""
 
 
 def cors_origins_from_environment() -> list[str]:
