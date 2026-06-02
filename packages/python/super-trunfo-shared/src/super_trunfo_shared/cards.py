@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
+from json import dumps
 
 CARD_ATTRIBUTES = ("speed", "strength", "intelligence", "resistance", "rarity")
 
@@ -36,8 +37,16 @@ def calculate_expiration_date(rarity: int, created_at: datetime | None = None) -
 
 
 def card_uniqueness_hash(attributes: CardAttributes) -> str:
-    raw_value = (
-        f"{attributes.name}-{attributes.speed}-{attributes.strength}-"
-        f"{attributes.intelligence}-{attributes.resistance}-{attributes.rarity}"
+    canonical_payload = dumps(
+        {
+            "intelligence": attributes.intelligence,
+            "name": attributes.name.strip().lower(),
+            "rarity": attributes.rarity,
+            "resistance": attributes.resistance,
+            "speed": attributes.speed,
+            "strength": attributes.strength,
+        },
+        separators=(",", ":"),
+        sort_keys=True,
     )
-    return sha256(raw_value.encode("utf-8")).hexdigest()
+    return sha256(canonical_payload.encode("utf-8")).hexdigest()

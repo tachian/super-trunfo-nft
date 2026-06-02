@@ -4,7 +4,11 @@ from uuid import UUID
 import pytest
 from app.domain.entities import Card, create_card
 from app.domain.exceptions import CardInvariantError
-from super_trunfo_shared.cards import CardAttributes, calculate_expiration_days
+from super_trunfo_shared.cards import (
+    CardAttributes,
+    calculate_expiration_days,
+    card_uniqueness_hash,
+)
 
 
 def test_create_card_models_owner_attributes_family_level_and_validity() -> None:
@@ -33,6 +37,7 @@ def test_create_card_models_owner_attributes_family_level_and_validity() -> None
     assert card.attributes == attributes
     assert card.family == "solar"
     assert card.level == 334
+    assert card.uniqueness_hash == card_uniqueness_hash(attributes)
     assert card.expires_at == created_at + timedelta(days=calculate_expiration_days(80))
     assert card.is_valid_at(created_at + timedelta(days=1))
     assert card.is_expired_at(card.expires_at)

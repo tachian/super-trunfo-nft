@@ -1,11 +1,18 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, status
-from pydantic import BaseModel
+from fastapi import APIRouter, Request, status
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from super_trunfo_shared.cards import CardAttributes, card_uniqueness_hash
 
+from app.application.use_cases import (
+    GenerateUniqueCard,
+    GenerateUniqueCardCommand,
+    GenerateUniqueCardResult,
+)
 from app.domain.entities import Card, create_card
+from app.domain.exceptions import DuplicateCardGenerationError
 
 
 class CardResponse(BaseModel):
@@ -19,8 +26,19 @@ class CardResponse(BaseModel):
     resistance: int
     rarity: int
     level: int
+    uniqueness_hash: str
     created_at: datetime
     expires_at: datetime
+
+
+class GenerateSampleCardRequest(BaseModel):
+    owner_id: UUID = UUID("11111111-1111-4111-8111-111111111111")
+    family: str = Field(default="shadow", min_length=1, max_length=50)
+
+
+class GenerateSampleCardResponse(BaseModel):
+    card: CardResponse
+    attempts: int
 
 
 def create_cards_router() -> APIRouter:
@@ -59,6 +77,36 @@ def create_cards_router() -> APIRouter:
             "hash": card_uniqueness_hash(attributes),
         }
 
+    @router.post(
+        "/cards/sample/generate",
+        status_code=status.HTTP_201_CREATED,
+        response_model=GenerateSampleCardResponse,
+        responses={409: {"description": "Unable to generate a unique card"}},
+    )
+    async def generate_sample_card(
+        payload: GenerateSampleCardRequest,
+        request: Request,
+    ) -> GenerateSampleCardResponse | JSONResponse:
+        use_case = GenerateUniqueCard(
+            request.app.state.card_repository,
+            request.app.state.card_attribute_generator,
+        )
+
+        try:
+            result = use_case.execute(
+                GenerateUniqueCardCommand(
+                    owner_id=payload.owner_id,
+                    family=payload.family,
+                )
+            )
+        except DuplicateCardGenerationError:
+            return JSONResponse(
+                status_code=status.HTTP_409_CONFLICT,
+                content={"detail": "Unable to generate a unique card."},
+            )
+
+        return generated_card_response(result)
+
     @router.get("/cards/{card_id}", status_code=status.HTTP_202_ACCEPTED)
     async def get_card(card_id: str) -> dict[str, str]:
         return {
@@ -94,6 +142,14 @@ def card_response(card: Card) -> CardResponse:
         resistance=card.resistance,
         rarity=card.rarity,
         level=card.level,
+        uniqueness_hash=card.uniqueness_hash,
         created_at=card.created_at,
         expires_at=card.expires_at,
+    )
+
+
+def generated_card_response(result: GenerateUniqueCardResult) -> GenerateSampleCardResponse:
+    return GenerateSampleCardResponse(
+        card=card_response(result.card),
+        attempts=result.attempts,
     )

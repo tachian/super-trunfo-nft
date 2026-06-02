@@ -6,6 +6,7 @@ from super_trunfo_shared.cards import (
     CardAttributes,
     calculate_card_level,
     calculate_expiration_date,
+    card_uniqueness_hash,
 )
 
 from .exceptions import CardInvariantError
@@ -62,6 +63,10 @@ class Card:
     @property
     def level(self) -> int:
         return calculate_card_level(self.attributes)
+
+    @property
+    def uniqueness_hash(self) -> str:
+        return card_uniqueness_hash(self.attributes)
 
     def is_valid_at(self, instant: datetime) -> bool:
         return instant < self.expires_at
