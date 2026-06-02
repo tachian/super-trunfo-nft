@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
 
 from super_trunfo_shared.cards import (
+    BASE_EXPIRATION_DAYS,
     CardAttributes,
     calculate_card_level,
+    calculate_expiration_bonus_days,
     calculate_expiration_date,
     calculate_expiration_days,
     card_uniqueness_hash,
@@ -38,6 +40,11 @@ def test_card_uniqueness_hash_uses_canonical_sha256_payload() -> None:
 
 
 def test_expiration_formula_uses_rarity_bonus() -> None:
+    assert calculate_expiration_bonus_days(rarity=20) == -36
+    assert calculate_expiration_bonus_days(rarity=50) == 0
+    assert calculate_expiration_bonus_days(rarity=80) == 36
+
+    assert calculate_expiration_days(rarity=20) == BASE_EXPIRATION_DAYS - 36
     assert calculate_expiration_days(rarity=50) == 365
     assert calculate_expiration_days(rarity=80) == 401
 
@@ -45,4 +52,9 @@ def test_expiration_formula_uses_rarity_bonus() -> None:
 def test_expiration_date_starts_from_creation_time() -> None:
     created_at = datetime(2026, 5, 18, tzinfo=UTC)
 
-    assert calculate_expiration_date(rarity=50, created_at=created_at).year == 2027
+    assert calculate_expiration_date(rarity=80, created_at=created_at) == datetime(
+        2027,
+        6,
+        23,
+        tzinfo=UTC,
+    )

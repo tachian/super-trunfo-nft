@@ -27,6 +27,7 @@ class CardResponse(BaseModel):
     rarity: int
     level: int
     uniqueness_hash: str
+    expiration_days: int
     created_at: datetime
     expires_at: datetime
 
@@ -143,6 +144,7 @@ def card_response(card: Card) -> CardResponse:
         rarity=card.rarity,
         level=card.level,
         uniqueness_hash=card.uniqueness_hash,
+        expiration_days=card.expiration_days,
         created_at=card.created_at,
         expires_at=card.expires_at,
     )
