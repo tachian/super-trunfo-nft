@@ -151,6 +151,52 @@ paths:
       responses:
         "202":
           description: Planned endpoint
+  /nft/metadata/offline:
+    post:
+      summary: Generate offline ERC-721 metadata for a card
+      operationId: generateOfflineNftMetadata
+      tags: [NFT]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateNftMetadataRequest"
+      responses:
+        "201":
+          description: Offline NFT metadata generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NftMetadata"
+  /nft/metadata/{card_id}:
+    get:
+      summary: Get offline ERC-721 metadata for a card
+      operationId: getNftMetadata
+      tags: [NFT]
+      parameters:
+        - name: card_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Offline NFT metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NftMetadata"
+        "404":
+          description: Offline NFT metadata not found
+  /nft/mint:
+    post:
+      summary: Mint card NFT on-chain
+      tags: [NFT]
+      responses:
+        "202":
+          description: Disabled until post-MVP
 components:
   securitySchemes:
     bearerAuth:
@@ -383,3 +429,88 @@ components:
           type:
             - string
             - "null"
+    GenerateNftMetadataRequest:
+      type: object
+      required: [card_id, name, family, rarity, level]
+      properties:
+        card_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        family:
+          type: string
+          minLength: 1
+          maxLength: 50
+        rarity:
+          type: integer
+          minimum: 0
+          maximum: 100
+        level:
+          type: integer
+          minimum: 0
+        speed:
+          type: integer
+          minimum: 0
+          maximum: 100
+        strength:
+          type: integer
+          minimum: 0
+          maximum: 100
+        intelligence:
+          type: integer
+          minimum: 0
+          maximum: 100
+        resistance:
+          type: integer
+          minimum: 0
+          maximum: 100
+        expires_at:
+          type: string
+          format: date-time
+    NftAttribute:
+      type: object
+      required: [trait_type, value]
+      properties:
+        trait_type:
+          type: string
+          minLength: 1
+        value:
+          oneOf:
+            - type: string
+            - type: integer
+    NftMetadata:
+      type: object
+      required: [name, description, image, attributes, properties]
+      properties:
+        name:
+          type: string
+          description: ERC-721 metadata name.
+        description:
+          type: string
+          description: ERC-721 metadata description.
+        image:
+          type: string
+          description: ERC-721 metadata image URI. Uses IPFS in the MVP offline flow.
+        attributes:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/NftAttribute"
+        properties:
+          type: object
+          required: [card_id, metadata_uri, generated_at, mint_enabled]
+          properties:
+            card_id:
+              type: string
+              format: uuid
+            metadata_uri:
+              type: string
+            generated_at:
+              type: string
+              format: date-time
+            mint_enabled:
+              type: boolean
+              enum: [false]
