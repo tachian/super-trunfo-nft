@@ -145,7 +145,7 @@ jobs:
         environment: [staging, production]
     steps:
       - uses: actions/checkout@v6
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
       - working-directory: infra/terraform/envs/${{ matrix.environment }}
         run: terraform init -backend=false
       - working-directory: infra/terraform/envs/${{ matrix.environment }}
