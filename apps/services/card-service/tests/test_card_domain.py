@@ -38,6 +38,7 @@ def test_create_card_models_owner_attributes_family_level_and_validity() -> None
     assert card.family == "solar"
     assert card.level == 334
     assert card.uniqueness_hash == card_uniqueness_hash(attributes)
+    assert card.expiration_days == 401
     assert card.expires_at == created_at + timedelta(days=calculate_expiration_days(80))
     assert card.is_valid_at(created_at + timedelta(days=1))
     assert card.is_expired_at(card.expires_at)

@@ -6,6 +6,7 @@ from super_trunfo_shared.cards import (
     CardAttributes,
     calculate_card_level,
     calculate_expiration_date,
+    calculate_expiration_days,
     card_uniqueness_hash,
 )
 
@@ -67,6 +68,10 @@ class Card:
     @property
     def uniqueness_hash(self) -> str:
         return card_uniqueness_hash(self.attributes)
+
+    @property
+    def expiration_days(self) -> int:
+        return calculate_expiration_days(self.rarity)
 
     def is_valid_at(self, instant: datetime) -> bool:
         return instant < self.expires_at

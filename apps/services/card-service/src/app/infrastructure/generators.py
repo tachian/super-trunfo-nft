@@ -2,7 +2,6 @@ from random import Random
 
 from super_trunfo_shared.cards import CardAttributes
 
-
 CARD_NAME_PREFIXES = ("Solar", "Shadow", "Aqua", "Iron", "Storm", "Crystal")
 CARD_NAME_ARCHETYPES = ("Titan", "Ranger", "Oracle", "Guardian", "Striker", "Sentinel")
 

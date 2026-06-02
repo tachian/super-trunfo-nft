@@ -2,11 +2,11 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "strict": true,
     "target": "es2022"
   },
-  "include": ["./hardhat.config.ts", "./scripts", "./test", "./typechain-types"]
+  "include": ["./hardhat.config.ts", "./scripts", "./test", "./types"]
 }

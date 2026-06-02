@@ -4,6 +4,9 @@ from hashlib import sha256
 from json import dumps
 
 CARD_ATTRIBUTES = ("speed", "strength", "intelligence", "resistance", "rarity")
+BASE_EXPIRATION_DAYS = 365
+RARITY_EXPIRATION_PIVOT = 50
+RARITY_EXPIRATION_MULTIPLIER = 1.2
 
 
 @dataclass(frozen=True)
@@ -26,9 +29,12 @@ def calculate_card_level(attributes: CardAttributes) -> int:
     )
 
 
-def calculate_expiration_days(rarity: int, base_days: int = 365) -> int:
-    bonus = int((rarity - 50) * 1.2)
-    return base_days + bonus
+def calculate_expiration_bonus_days(rarity: int) -> int:
+    return int((rarity - RARITY_EXPIRATION_PIVOT) * RARITY_EXPIRATION_MULTIPLIER)
+
+
+def calculate_expiration_days(rarity: int, base_days: int = BASE_EXPIRATION_DAYS) -> int:
+    return base_days + calculate_expiration_bonus_days(rarity)
 
 
 def calculate_expiration_date(rarity: int, created_at: datetime | None = None) -> datetime:

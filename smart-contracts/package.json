@@ -2,14 +2,17 @@
   "name": "@super-trunfo/smart-contracts",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat compile",
-    "lint": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat compile",
-    "test": "XDG_CONFIG_HOME=../.cache/xdg-config XDG_DATA_HOME=../.cache/xdg-data XDG_CACHE_HOME=../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat test"
+    "build": "XDG_CONFIG_HOME=$PWD/../.cache/xdg-config XDG_DATA_HOME=$PWD/../.cache/xdg-data XDG_CACHE_HOME=$PWD/../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat compile",
+    "lint": "XDG_CONFIG_HOME=$PWD/../.cache/xdg-config XDG_DATA_HOME=$PWD/../.cache/xdg-data XDG_CACHE_HOME=$PWD/../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat compile",
+    "test": "XDG_CONFIG_HOME=$PWD/../.cache/xdg-config XDG_DATA_HOME=$PWD/../.cache/xdg-data XDG_CACHE_HOME=$PWD/../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat test"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "3.0.0",
     "@openzeppelin/contracts": "^5.1.0",
+    "@types/chai": "^4.2.0",
+    "chai": "^5.1.2",
     "hardhat": "^3.7.0",
     "typescript": "^6.0.3"
   }

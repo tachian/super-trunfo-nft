@@ -26,6 +26,7 @@ async def test_sample_card_model_exposes_st201_aggregate_shape() -> None:
     assert response["rarity"] == 80
     assert response["level"] == 393
     assert len(response["uniqueness_hash"]) == 64
+    assert response["expiration_days"] == 401
     assert response["expires_at"]
 
 
@@ -60,6 +61,7 @@ async def test_generate_sample_card_persists_unique_card_hash() -> None:
     assert response["card"]["name"] == "Shadow Titan"
     assert response["card"]["family"] == "shadow"
     assert len(response["card"]["uniqueness_hash"]) == 64
+    assert response["card"]["expiration_days"] == 401
 
 
 class StaticAttributeGenerator:

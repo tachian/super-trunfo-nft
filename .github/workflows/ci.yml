@@ -113,28 +113,25 @@ jobs:
           - notification-service
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: infra/docker/fastapi-service.Dockerfile
-          push: false
-          build-args: |
-            SERVICE_DIR=apps/services/${{ matrix.service }}
-          tags: super-trunfo/${{ matrix.service }}:ci
+      - name: Build service image
+        run: |
+          docker build \
+            --file infra/docker/fastapi-service.Dockerfile \
+            --build-arg SERVICE_DIR=apps/services/${{ matrix.service }} \
+            --tag super-trunfo/${{ matrix.service }}:ci \
+            .
 
   docker-build-web:
     name: Docker build - web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: infra/docker/web.Dockerfile
-          push: false
-          tags: super-trunfo/web:ci
+      - name: Build web image
+        run: |
+          docker build \
+            --file infra/docker/web.Dockerfile \
+            --tag super-trunfo/web:ci \
+            .
 
   terraform:
     name: Terraform validate
@@ -160,13 +157,15 @@ jobs:
         with:
           languages: javascript-typescript,python
       - uses: github/codeql-action/analyze@v4
-      - uses: aquasecurity/trivy-action@v0.36.0
+      - name: Generate Trivy SARIF report
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
+          scanners: vuln
           format: sarif
           output: trivy-results.sarif
-          exit-code: "1"
+          exit-code: "0"
           ignore-unfixed: true
           severity: HIGH,CRITICAL
           vuln-type: os,library
@@ -174,6 +173,17 @@ jobs:
         if: always()
         with:
           sarif_file: trivy-results.sarif
+      - name: Enforce Trivy vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
 
   sonarcloud:
     name: SonarCloud quality gate
@@ -183,7 +193,19 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: SonarSource/sonarqube-scan-action@v8
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r apps/services/requirements-dev.txt
+      - run: PYTHON_COVERAGE=1 pnpm python:test
+      - uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:

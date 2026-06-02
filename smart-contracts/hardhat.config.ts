@@ -1,7 +1,8 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
+import hardhatToolboxMochaEthers from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import type { HardhatUserConfig } from "hardhat/config";
 
 const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxMochaEthers],
   solidity: {
     version: "0.8.28",
     settings: {
@@ -11,9 +12,6 @@ const config: HardhatUserConfig = {
         runs: 200,
       },
     },
-  },
-  networks: {
-    hardhat: {},
   },
 };
 
