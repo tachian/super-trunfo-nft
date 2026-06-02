@@ -196,6 +196,18 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r apps/services/requirements-dev.txt
+      - run: PYTHON_COVERAGE=1 pnpm python:test
       - uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
