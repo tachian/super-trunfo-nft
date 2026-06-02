@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 from typing import Annotated
 
@@ -23,8 +22,6 @@ from app.domain.exceptions import (
     PlayerNotFoundError,
 )
 
-EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
 
 class RegisterPlayerRequest(BaseModel):
     nickname: Annotated[str, Field(min_length=3, max_length=50)]
@@ -34,12 +31,7 @@ class RegisterPlayerRequest(BaseModel):
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str) -> str:
-        normalized = value.strip().lower()
-
-        if not EMAIL_PATTERN.match(normalized):
-            raise ValueError("invalid email format")
-
-        return normalized
+        return normalize_email(value)
 
     @field_validator("nickname")
     @classmethod
@@ -59,12 +51,26 @@ class LoginPlayerRequest(BaseModel):
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str) -> str:
-        normalized = value.strip().lower()
+        return normalize_email(value)
 
-        if not EMAIL_PATTERN.match(normalized):
-            raise ValueError("invalid email format")
 
-        return normalized
+def normalize_email(value: str) -> str:
+    normalized = value.strip().lower()
+
+    if any(character.isspace() for character in normalized):
+        raise ValueError("invalid email format")
+
+    local_part, separator, domain = normalized.partition("@")
+
+    if not separator or not local_part or not domain:
+        raise ValueError("invalid email format")
+
+    domain_labels = domain.split(".")
+
+    if len(domain_labels) < 2 or any(not label for label in domain_labels):
+        raise ValueError("invalid email format")
+
+    return normalized
 
 
 class PlayerResponse(BaseModel):
