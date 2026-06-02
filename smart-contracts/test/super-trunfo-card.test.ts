@@ -1,8 +1,9 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
 
 describe("SuperTrunfoCard", () => {
   it("mints a card NFT with metadata URI", async () => {
+    const { ethers } = await network.getOrCreate();
     const [owner, player] = await ethers.getSigners();
     const contractFactory = await ethers.getContractFactory("SuperTrunfoCard");
     const contract = await contractFactory.deploy(owner.address);
