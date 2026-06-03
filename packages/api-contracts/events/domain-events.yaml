@@ -37,6 +37,17 @@ events:
       uniqueness_hash: string
       expires_at: datetime
       generation_batch_id: uuid
+  - name: NftMetadataGenerated
+    version: 1.0.0
+    producer: nft-service
+    consumers: [card-service, economy-service]
+    payload:
+      schema_version: string
+      card_id: uuid
+      metadata_uri: string
+      image: string
+      mint_enabled: boolean
+      generated_at: datetime
   - name: MatchStarted
     producer: matchmaking-service
     consumers: [gameplay-service, notification-service]

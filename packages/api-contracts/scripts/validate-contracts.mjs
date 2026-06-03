@@ -54,6 +54,22 @@ for (const fragment of requiredCardContractFragments) {
   }
 }
 
+const requiredNftContractFragments = [
+  "operationId: generateOfflineNftMetadata",
+  "operationId: getNftMetadata",
+  "GenerateNftMetadataRequest:",
+  "NftMetadata:",
+  "NftAttribute:",
+  "mint_enabled:",
+  "enum: [false]",
+];
+
+for (const fragment of requiredNftContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing NFT contract fragment: ${fragment}`);
+  }
+}
+
 const domainEventsContract = readFileSync(
   join(packageRoot, "events/domain-events.yaml"),
   "utf8",
@@ -70,6 +86,19 @@ const requiredIdentityEventFragments = [
 for (const fragment of requiredIdentityEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing identity event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredNftEventFragments = [
+  "name: NftMetadataGenerated",
+  "producer: nft-service",
+  "metadata_uri: string",
+  "mint_enabled: boolean",
+];
+
+for (const fragment of requiredNftEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing NFT event contract fragment: ${fragment}`);
   }
 }
 
