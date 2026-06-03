@@ -1,5 +1,7 @@
-from fastapi import status
 from super_trunfo_shared.api import create_service_app
+
+from app.api.routes import create_gameplay_router
+from app.infrastructure.repositories import InMemoryMatchRepository
 
 SERVICE_NAME = "gameplay-service"
 CONTEXT = "gameplay"
@@ -14,19 +16,5 @@ app = create_service_app(
     context=CONTEXT,
     planned_routes=PLANNED_ROUTES,
 )
-
-
-@app.get("/match/{match_id}", status_code=status.HTTP_202_ACCEPTED, tags=["gameplay"])
-async def get_match(match_id: str) -> dict[str, str]:
-    return {"service": SERVICE_NAME, "match_id": match_id, "status": "planned", "task": "ST-302"}
-
-
-@app.post("/match/{match_id}/play", status_code=status.HTTP_202_ACCEPTED, tags=["gameplay"])
-async def play_round(match_id: str) -> dict[str, str]:
-    return {"service": SERVICE_NAME, "match_id": match_id, "status": "planned", "task": "ST-305"}
-
-
-@app.get("/match/{match_id}/replay", status_code=status.HTTP_202_ACCEPTED, tags=["gameplay"])
-async def match_replay(match_id: str) -> dict[str, str]:
-    return {"service": SERVICE_NAME, "match_id": match_id, "status": "planned", "task": "ST-304"}
-
+app.state.match_repository = InMemoryMatchRepository()
+app.include_router(create_gameplay_router())
