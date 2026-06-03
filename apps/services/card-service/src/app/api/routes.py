@@ -10,9 +10,15 @@ from app.application.use_cases import (
     GenerateUniqueCard,
     GenerateUniqueCardCommand,
     GenerateUniqueCardResult,
+    SelectDeck,
+    SelectDeckCommand,
 )
-from app.domain.entities import Card, create_card
-from app.domain.exceptions import DuplicateCardGenerationError
+from app.domain.entities import Card, Deck, create_card
+from app.domain.exceptions import (
+    DeckCardNotFoundError,
+    DeckSelectionError,
+    DuplicateCardGenerationError,
+)
 
 
 class CardResponse(BaseModel):
@@ -42,6 +48,19 @@ class GenerateSampleCardResponse(BaseModel):
     attempts: int
 
 
+class SelectDeckRequest(BaseModel):
+    owner_id: UUID
+    card_ids: list[UUID]
+
+
+class DeckResponse(BaseModel):
+    id: str
+    owner_id: str
+    card_ids: list[str]
+    average_level: float
+    selected_at: datetime
+
+
 def create_cards_router() -> APIRouter:
     router = APIRouter(tags=["cards"])
 
@@ -49,9 +68,43 @@ def create_cards_router() -> APIRouter:
     async def list_cards() -> dict[str, str]:
         return {"service": "card-service", "status": "planned", "task": "ST-201"}
 
-    @router.post("/cards/select-deck", status_code=status.HTTP_202_ACCEPTED)
-    async def select_deck() -> dict[str, str]:
-        return {"service": "card-service", "status": "planned", "task": "ST-301"}
+    @router.post(
+        "/cards/select-deck",
+        response_model=DeckResponse,
+        responses={
+            400: {"description": "Invalid deck selection"},
+            404: {"description": "Selected card not found"},
+        },
+    )
+    async def select_deck(
+        payload: SelectDeckRequest,
+        request: Request,
+    ) -> DeckResponse | JSONResponse:
+        use_case = SelectDeck(
+            request.app.state.card_repository,
+            request.app.state.deck_repository,
+            request.app.state.domain_event_publisher,
+        )
+
+        try:
+            result = use_case.execute(
+                SelectDeckCommand(
+                    owner_id=payload.owner_id,
+                    card_ids=tuple(payload.card_ids),
+                )
+            )
+        except DeckCardNotFoundError:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"detail": "Selected card not found."},
+            )
+        except DeckSelectionError as exc:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": str(exc)},
+            )
+
+        return deck_response(result.deck)
 
     @router.get("/cards/sample/model", response_model=CardResponse)
     async def sample_card_model() -> CardResponse:
@@ -154,4 +207,14 @@ def generated_card_response(result: GenerateUniqueCardResult) -> GenerateSampleC
     return GenerateSampleCardResponse(
         card=card_response(result.card),
         attempts=result.attempts,
+    )
+
+
+def deck_response(deck: Deck) -> DeckResponse:
+    return DeckResponse(
+        id=str(deck.id),
+        owner_id=str(deck.owner_id),
+        card_ids=[str(card_id) for card_id in deck.card_ids],
+        average_level=deck.average_level,
+        selected_at=deck.selected_at,
     )

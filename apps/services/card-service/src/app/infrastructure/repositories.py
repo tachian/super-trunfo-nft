@@ -1,7 +1,7 @@
 from threading import Lock
 from uuid import UUID
 
-from app.domain.entities import Card
+from app.domain.entities import Card, Deck
 from app.domain.exceptions import DuplicateCardHashError
 from app.domain.repositories import CardSearchDocument
 
@@ -30,6 +30,23 @@ class InMemoryCardRepository:
         with self._lock:
             self._cards_by_hash.clear()
             self._cards_by_id.clear()
+
+
+class InMemoryDeckRepository:
+    def __init__(self) -> None:
+        self._active_decks_by_owner: dict[UUID, Deck] = {}
+        self._lock = Lock()
+
+    def save(self, deck: Deck) -> None:
+        with self._lock:
+            self._active_decks_by_owner[deck.owner_id] = deck
+
+    def find_active_by_owner(self, owner_id: UUID) -> Deck | None:
+        return self._active_decks_by_owner.get(owner_id)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._active_decks_by_owner.clear()
 
 
 class InMemoryCardSearchIndex:

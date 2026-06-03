@@ -5,7 +5,7 @@ from uuid import UUID
 
 from super_trunfo_shared import DomainEvent
 
-from .entities import Card
+from .entities import Card, Deck
 
 
 @dataclass(frozen=True)
@@ -43,3 +43,11 @@ class CardRepository(Protocol):
 
     def find_by_id(self, card_id: UUID) -> Card | None:
         """Find a card by id."""
+
+
+class DeckRepository(Protocol):
+    def save(self, deck: Deck) -> None:
+        """Persist the active deck selection."""
+
+    def find_active_by_owner(self, owner_id: UUID) -> Deck | None:
+        """Find the current active deck for a player."""

@@ -37,6 +37,17 @@ events:
       uniqueness_hash: string
       expires_at: datetime
       generation_batch_id: uuid
+  - name: DeckSelected
+    version: 1.0.0
+    producer: card-service
+    consumers: [matchmaking-service, gameplay-service]
+    payload:
+      schema_version: string
+      deck_id: uuid
+      owner_id: uuid
+      card_ids: uuid[]
+      average_level: number
+      selected_at: datetime
   - name: NftMetadataGenerated
     version: 1.0.0
     producer: nft-service

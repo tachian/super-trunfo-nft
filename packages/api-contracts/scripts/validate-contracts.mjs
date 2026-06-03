@@ -43,8 +43,12 @@ for (const fragment of requiredAuthContractFragments) {
 const requiredCardContractFragments = [
   "Card:",
   "CardAttributes:",
+  "Deck:",
+  "SelectDeckRequest:",
+  "operationId: selectDeck",
   "owner_id:",
   "expires_at:",
+  "average_level:",
   "Derived from speed + strength + intelligence + resistance + rarity.",
 ];
 
@@ -99,6 +103,19 @@ const requiredNftEventFragments = [
 for (const fragment of requiredNftEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing NFT event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredCardEventFragments = [
+  "name: DeckSelected",
+  "producer: card-service",
+  "card_ids: uuid[]",
+  "average_level: number",
+];
+
+for (const fragment of requiredCardEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing card event contract fragment: ${fragment}`);
   }
 }
 
