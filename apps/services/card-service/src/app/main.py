@@ -6,7 +6,11 @@ from super_trunfo_shared.api import create_service_app
 from app.api.routes import create_cards_router
 from app.application.use_cases import GenerateProceduralCards
 from app.infrastructure.generators import ProceduralCardAttributeGenerator
-from app.infrastructure.repositories import InMemoryCardRepository, InMemoryCardSearchIndex
+from app.infrastructure.repositories import (
+    InMemoryCardRepository,
+    InMemoryCardSearchIndex,
+    InMemoryDeckRepository,
+)
 from app.infrastructure.workers import (
     ProceduralCardGenerationWorker,
     ProceduralCardGenerationWorkerConfig,
@@ -28,6 +32,7 @@ app = create_service_app(
     planned_routes=PLANNED_ROUTES,
 )
 app.state.card_repository = InMemoryCardRepository()
+app.state.deck_repository = InMemoryDeckRepository()
 app.state.card_attribute_generator = ProceduralCardAttributeGenerator()
 app.state.card_search_index = InMemoryCardSearchIndex()
 app.state.domain_event_publisher = InMemoryDomainEventPublisher(

@@ -84,10 +84,25 @@ paths:
   /cards/select-deck:
     post:
       summary: Select active deck
+      operationId: selectDeck
       tags: [Cards]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectDeckRequest"
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Active deck selected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deck"
+        "400":
+          description: Invalid deck selection
+        "404":
+          description: Selected card not found
   /matchmaking/find:
     post:
       summary: Find PvP opponent or create PvE match
@@ -289,6 +304,30 @@ components:
           type: integer
           minimum: 0
           maximum: 100
+    Deck:
+      type: object
+      required: [id, owner_id, card_ids, average_level, selected_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        card_ids:
+          type: array
+          minItems: 10
+          maxItems: 10
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        average_level:
+          type: number
+          description: Average level of the 10 selected valid cards.
+        selected_at:
+          type: string
+          format: date-time
     InitialDeckCard:
       type: object
       required:
@@ -418,6 +457,21 @@ components:
           minLength: 8
           maxLength: 128
           writeOnly: true
+    SelectDeckRequest:
+      type: object
+      required: [owner_id, card_ids]
+      properties:
+        owner_id:
+          type: string
+          format: uuid
+        card_ids:
+          type: array
+          minItems: 10
+          maxItems: 10
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
     SocialLoginMetadata:
       type: object
       required: [provider]
