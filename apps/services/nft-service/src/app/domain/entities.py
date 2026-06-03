@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from urllib.parse import urlparse
 from uuid import UUID
 
 from .exceptions import NftInvariantError
@@ -52,7 +53,7 @@ class NftMetadata:
         if not normalized_image:
             raise NftInvariantError("NFT metadata image cannot be blank")
 
-        if normalized_image.startswith("http://"):
+        if urlparse(normalized_image).scheme == "http":
             raise NftInvariantError("NFT metadata image must use a secure or decentralized URI")
 
         if not self.attributes:

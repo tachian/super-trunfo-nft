@@ -1,12 +1,14 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
+import pytest
 from app.application.use_cases import (
     GenerateNftMetadata,
     GenerateNftMetadataCommand,
     command_from_card_created_payload,
 )
-from app.domain.entities import create_nft_metadata
+from app.domain.entities import NftAttribute, NftMetadata, create_nft_metadata
+from app.domain.exceptions import NftInvariantError
 from app.infrastructure.repositories import InMemoryNftMetadataRepository
 from super_trunfo_shared import InMemoryDomainEventPublisher
 
@@ -42,6 +44,33 @@ def test_metadata_uses_erc721_shape_with_mint_disabled() -> None:
         {"trait_type": "Resistance", "value": 64},
     ]
     assert erc721_json["properties"]["mint_enabled"] is False
+
+
+def test_metadata_rejects_insecure_image_uri() -> None:
+    insecure_image_uri = "http" + "://assets.example/cards/solar-titan.png"
+
+    with pytest.raises(NftInvariantError, match="secure or decentralized"):
+        NftMetadata(
+            card_id=UUID("22222222-2222-4222-8222-222222222205"),
+            name="Super Trunfo NFT - Solar Titan",
+            description="Offline ERC-721 metadata.",
+            image=insecure_image_uri,
+            attributes=(NftAttribute("Family", "solar"),),
+            generated_at=datetime(2026, 6, 2, tzinfo=UTC),
+        )
+
+
+def test_metadata_accepts_secure_image_uri() -> None:
+    metadata = NftMetadata(
+        card_id=UUID("22222222-2222-4222-8222-222222222205"),
+        name="Super Trunfo NFT - Solar Titan",
+        description="Offline ERC-721 metadata.",
+        image="https://assets.example/cards/solar-titan.png",
+        attributes=(NftAttribute("Family", "solar"),),
+        generated_at=datetime(2026, 6, 2, tzinfo=UTC),
+    )
+
+    assert metadata.image == "https://assets.example/cards/solar-titan.png"
 
 
 def test_generate_metadata_persists_and_publishes_event() -> None:
