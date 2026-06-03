@@ -98,10 +98,10 @@ def create_cards_router() -> APIRouter:
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"detail": "Selected card not found."},
             )
-        except DeckSelectionError:
+        except DeckSelectionError as exc:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={"detail": "Invalid deck selection."},
+                content={"detail": str(exc)},
             )
 
         return deck_response(result.deck)
