@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from .entities import TierQueue
+from .entities import MatchmakingTicket, TierQueue
 
 
 @dataclass(frozen=True)
@@ -16,3 +16,13 @@ class MatchmakingQueueRepository(Protocol):
 
     def queue_size(self, queue: TierQueue) -> int:
         """Return the number of tickets waiting in a tier queue."""
+
+    def enqueue_ticket(self, ticket: MatchmakingTicket) -> None:
+        """Add a ticket to its tier queue."""
+
+    def find_compatible_ticket(
+        self,
+        ticket: MatchmakingTicket,
+        tolerance: int,
+    ) -> MatchmakingTicket | None:
+        """Find and remove a compatible waiting ticket from the same tier queue."""

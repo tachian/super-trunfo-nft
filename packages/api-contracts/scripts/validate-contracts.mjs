@@ -96,7 +96,13 @@ for (const fragment of requiredGameplayContractFragments) {
 }
 
 const requiredMatchmakingContractFragments = [
+  "operationId: findMatch",
   "operationId: getMatchmakingQueues",
+  "FindMatchRequest:",
+  "FindMatchResponse:",
+  "MatchmakingTicket:",
+  "enum: [queued, matched]",
+  "enum: [20]",
   "MatchmakingQueue:",
   "MatchmakingQueues:",
   "enum: [queue:bronze, queue:silver, queue:gold]",
@@ -128,6 +134,7 @@ for (const fragment of requiredGameplayDomainFragments) {
 
 const requiredMatchmakingDomainFragments = [
   "Matchmaking Redis queues are named queue:bronze, queue:silver and queue:gold.",
+  "Players are paired only when their average deck levels differ by at most 20 points.",
 ];
 
 for (const fragment of requiredMatchmakingDomainFragments) {

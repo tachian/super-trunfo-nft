@@ -106,10 +106,21 @@ paths:
   /matchmaking/find:
     post:
       summary: Find PvP opponent or create PvE match
+      operationId: findMatch
       tags: [Matchmaking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FindMatchRequest"
       responses:
         "202":
-          description: Planned endpoint
+          description: Matchmaking ticket queued or matched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FindMatchResponse"
   /matchmaking/queues:
     get:
       summary: Get matchmaking tier queues
@@ -589,6 +600,57 @@ components:
           maxItems: 3
           items:
             $ref: "#/components/schemas/MatchmakingQueue"
+    MatchmakingTicket:
+      type: object
+      required: [id, player_id, average_deck_level, tier, queue]
+      properties:
+        id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        average_deck_level:
+          type: integer
+          minimum: 0
+        tier:
+          type: string
+          enum: [bronze, silver, gold]
+        queue:
+          type: string
+          enum: [queue:bronze, queue:silver, queue:gold]
+    FindMatchRequest:
+      type: object
+      required: [player_id, average_deck_level]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        average_deck_level:
+          type: integer
+          minimum: 0
+    FindMatchResponse:
+      type: object
+      required: [service, task, status, tolerance, ticket]
+      properties:
+        service:
+          type: string
+          enum: [matchmaking-service]
+        task:
+          type: string
+          enum: [ST-402]
+        status:
+          type: string
+          enum: [queued, matched]
+        tolerance:
+          type: integer
+          enum: [20]
+        ticket:
+          $ref: "#/components/schemas/MatchmakingTicket"
+        matched_ticket:
+          oneOf:
+            - $ref: "#/components/schemas/MatchmakingTicket"
+            - type: "null"
     LoginPlayerRequest:
       type: object
       required: [email, password]

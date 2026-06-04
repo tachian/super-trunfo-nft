@@ -68,6 +68,7 @@ contexts:
     invariants:
       - Matchmaking Redis queues are named queue:bronze, queue:silver and queue:gold.
       - Player deck level tolerance starts at plus or minus 20 points.
+      - Players are paired only when their average deck levels differ by at most 20 points.
       - Bot fallback must use an equivalent deck level.
   gameplay:
     service: gameplay-service
