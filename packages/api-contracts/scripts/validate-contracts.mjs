@@ -90,6 +90,22 @@ for (const fragment of requiredGameplayContractFragments) {
   }
 }
 
+const domainContracts = readFileSync(
+  join(packageRoot, "domain/domain-contracts.yaml"),
+  "utf8",
+);
+const requiredGameplayDomainFragments = [
+  "BotStrategy",
+  "BOT deck must be equivalent",
+  "BOT strategy prefers the strongest card attribute",
+];
+
+for (const fragment of requiredGameplayDomainFragments) {
+  if (!domainContracts.includes(fragment)) {
+    throw new Error(`Missing gameplay domain contract fragment: ${fragment}`);
+  }
+}
+
 const domainEventsContract = readFileSync(
   join(packageRoot, "events/domain-events.yaml"),
   "utf8",
