@@ -60,8 +60,31 @@ events:
       mint_enabled: boolean
       generated_at: datetime
   - name: MatchStarted
+    version: 1.0.0
     producer: matchmaking-service
     consumers: [gameplay-service, notification-service]
+    payload:
+      schema_version: string
+      match_id: uuid
+      mode: string
+      player_id: uuid
+      opponent_id: uuid
+      opponent_kind: string
+      player_average_deck_level: integer
+      opponent_average_deck_level: integer
+      occurred_at: datetime
+  - name: BotMatchCreated
+    version: 1.0.0
+    producer: matchmaking-service
+    consumers: [gameplay-service, notification-service]
+    payload:
+      schema_version: string
+      match_id: uuid
+      player_id: uuid
+      bot_id: uuid
+      player_average_deck_level: integer
+      bot_average_deck_level: integer
+      occurred_at: datetime
   - name: RoundFinished
     producer: gameplay-service
     consumers: [ranking-service]

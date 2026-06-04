@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from .entities import MatchmakingTicket, TierQueue
+from .entities import MatchmakingTicket, MatchStartedEvent, TierQueue
 
 
 @dataclass(frozen=True)
@@ -26,3 +26,8 @@ class MatchmakingQueueRepository(Protocol):
         tolerance: int,
     ) -> MatchmakingTicket | None:
         """Find and remove a compatible waiting ticket from the same tier queue."""
+
+
+class MatchmakingEventPublisher(Protocol):
+    def publish(self, event: MatchStartedEvent) -> None:
+        """Publish a matchmaking domain event."""

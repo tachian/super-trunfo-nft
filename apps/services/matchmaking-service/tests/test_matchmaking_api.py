@@ -37,11 +37,14 @@ def test_matchmaking_openapi_exposes_queue_operation() -> None:
     assert "MatchmakingQueuesResponse" in openapi["components"]["schemas"]
     assert "FindMatchRequest" in openapi["components"]["schemas"]
     assert "FindMatchResponse" in openapi["components"]["schemas"]
+    assert "MatchmakingMatchResponse" in openapi["components"]["schemas"]
+    assert "MatchmakingEventResponse" in openapi["components"]["schemas"]
 
 
 @pytest.mark.anyio
 async def test_find_match_queues_player_when_no_opponent_is_available() -> None:
     app.state.matchmaking_queue_repository.clear()
+    app.state.matchmaking_event_publisher.clear()
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -52,6 +55,7 @@ async def test_find_match_queues_player_when_no_opponent_is_available() -> None:
             json={
                 "player_id": "11111111-1111-4111-8111-000000000402",
                 "average_deck_level": 320,
+                "fallback_after_seconds": 10,
             },
         )
 
@@ -60,14 +64,48 @@ async def test_find_match_queues_player_when_no_opponent_is_available() -> None:
     assert response.status_code == 202
     assert payload["status"] == "queued"
     assert payload["tolerance"] == 20
+    assert payload["fallback_after_seconds"] == 10
     assert payload["ticket"]["tier"] == "bronze"
     assert payload["ticket"]["queue"] == "queue:bronze"
     assert payload["matched_ticket"] is None
+    assert payload["match"] is None
+    assert payload["events"] == []
+
+
+@pytest.mark.anyio
+async def test_find_match_creates_pve_fallback_when_no_opponent_is_available() -> None:
+    app.state.matchmaking_queue_repository.clear()
+    app.state.matchmaking_event_publisher.clear()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/matchmaking/find",
+            json={
+                "player_id": "11111111-1111-4111-8111-000000000403",
+                "average_deck_level": 320,
+            },
+        )
+
+    payload = response.json()
+
+    assert response.status_code == 202
+    assert payload["task"] == "ST-403"
+    assert payload["status"] == "pve_created"
+    assert payload["matched_ticket"] is None
+    assert payload["match"]["mode"] == "pve"
+    assert payload["match"]["opponent"]["kind"] == "bot"
+    assert payload["match"]["opponent"]["average_deck_level"] == 320
+    assert payload["events"][0]["name"] == "MatchStarted"
+    assert payload["events"][0]["opponent_kind"] == "bot"
 
 
 @pytest.mark.anyio
 async def test_find_match_pairs_players_within_level_tolerance() -> None:
     app.state.matchmaking_queue_repository.clear()
+    app.state.matchmaking_event_publisher.clear()
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -78,6 +116,7 @@ async def test_find_match_pairs_players_within_level_tolerance() -> None:
             json={
                 "player_id": "11111111-1111-4111-8111-000000000402",
                 "average_deck_level": 320,
+                "fallback_after_seconds": 10,
             },
         )
         second_response = await client.post(
@@ -85,6 +124,7 @@ async def test_find_match_pairs_players_within_level_tolerance() -> None:
             json={
                 "player_id": "22222222-2222-4222-8222-000000000402",
                 "average_deck_level": 340,
+                "fallback_after_seconds": 10,
             },
         )
 
@@ -95,3 +135,6 @@ async def test_find_match_pairs_players_within_level_tolerance() -> None:
     assert second_response.status_code == 202
     assert second_payload["status"] == "matched"
     assert second_payload["matched_ticket"]["id"] == first_payload["ticket"]["id"]
+    assert second_payload["match"]["mode"] == "pvp"
+    assert second_payload["match"]["opponent"]["kind"] == "player"
+    assert second_payload["events"][0]["name"] == "MatchStarted"
