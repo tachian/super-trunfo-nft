@@ -82,6 +82,98 @@ def test_round_requires_positive_number() -> None:
         )
 
 
+def test_round_rejects_invalid_attribute() -> None:
+    with pytest.raises(GameplayInvariantError, match="attribute"):
+        Round(
+            number=1,
+            player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
+            opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+            selected_attribute="luck",
+            winner_id=PLAYER_ID,
+            played_at=datetime(2026, 6, 29, tzinfo=UTC),
+        )
+
+
+def test_match_records_valid_round_without_accepting_score_mutation() -> None:
+    match = create_match(
+        player_id=PLAYER_ID,
+        opponent_id=OPPONENT_ID,
+        player_deck_card_ids=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1),
+        opponent_deck_card_ids=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1),
+        created_at=datetime(2026, 6, 29, tzinfo=UTC),
+    )
+
+    updated_match = match.record_round(
+        player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
+        opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+        selected_attribute=PlayableAttribute.SPEED,
+        winner_id=PLAYER_ID,
+        played_at=datetime(2026, 6, 29, 1, tzinfo=UTC),
+    )
+
+    assert len(updated_match.rounds) == 1
+    assert updated_match.rounds[0].number == 1
+    assert updated_match.score.player == 1
+    assert updated_match.score.opponent == 0
+
+
+def test_match_rejects_card_outside_deck() -> None:
+    match = create_match(
+        player_id=PLAYER_ID,
+        opponent_id=OPPONENT_ID,
+        player_deck_card_ids=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1),
+        opponent_deck_card_ids=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1),
+    )
+
+    with pytest.raises(GameplayInvariantError, match="player card"):
+        match.record_round(
+            player_card_id=UUID("cccccccc-cccc-4ccc-8ccc-000000000001"),
+            opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+            selected_attribute=PlayableAttribute.SPEED,
+        )
+
+
+def test_match_rejects_card_replay() -> None:
+    match = create_match(
+        player_id=PLAYER_ID,
+        opponent_id=OPPONENT_ID,
+        player_deck_card_ids=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1),
+        opponent_deck_card_ids=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1),
+    )
+    updated_match = match.record_round(
+        player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
+        opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+        selected_attribute=PlayableAttribute.SPEED,
+    )
+
+    with pytest.raises(GameplayInvariantError, match="already played"):
+        updated_match.record_round(
+            player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
+            opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[1],
+            selected_attribute=PlayableAttribute.STRENGTH,
+        )
+
+
+def test_match_rejects_round_when_not_in_progress() -> None:
+    match = Match(
+        id=UUID("33333333-3333-4333-8333-333333333302"),
+        player=participant(PLAYER_ID, "aaaaaaaa-aaaa-4aaa-8aaa"),
+        opponent=participant(OPPONENT_ID, "bbbbbbbb-bbbb-4bbb-8bbb"),
+        rounds=(round_result(1, PLAYER_ID),),
+        status=MatchStatus.FINISHED,
+        created_at=datetime(2026, 6, 29, tzinfo=UTC),
+        winner_id=PLAYER_ID,
+        finished_at=datetime(2026, 6, 29, 1, tzinfo=UTC),
+    )
+
+    with pytest.raises(GameplayInvariantError, match="not in progress"):
+        match.record_round(
+            player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[1],
+            opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[1],
+            selected_attribute=PlayableAttribute.SPEED,
+        )
+
+
 def test_participant_requires_10_unique_cards() -> None:
     with pytest.raises(GameplayInvariantError, match="exactly 10"):
         MatchParticipant(

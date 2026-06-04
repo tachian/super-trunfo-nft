@@ -90,6 +90,8 @@ contexts:
       - Only backend can calculate round and match results.
       - A card cannot be replayed in the same match after use.
       - Round winner receives one point.
+      - Round payloads cannot carry client supplied score or winner mutations.
+      - Round play accepts only cards from the active match decks.
   economy:
     service: economy-service
     aggregates:

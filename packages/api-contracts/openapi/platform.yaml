@@ -134,6 +134,38 @@ paths:
   /match/{id}/play:
     post:
       summary: Play a round
+      operationId: playRound
+      tags: [Gameplay]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayRoundRequest"
+      responses:
+        "200":
+          description: Updated authoritative match state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameplayMatch"
+        "400":
+          description: Invalid round play
+        "404":
+          description: Match not found
+        "422":
+          description: Invalid payload or forbidden client-side score mutation
+  /match/{id}/replay:
+    get:
+      summary: Get match replay
+      operationId: getMatchReplay
       tags: [Gameplay]
       parameters:
         - name: id
@@ -143,8 +175,14 @@ paths:
             type: string
             format: uuid
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Authoritative match replay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchReplay"
+        "404":
+          description: Match not found
   /shop/offers:
     get:
       summary: List shop offers
@@ -482,6 +520,31 @@ components:
         opponent:
           type: integer
           minimum: 0
+    MatchReplay:
+      type: object
+      required: [match_id, rounds]
+      properties:
+        match_id:
+          type: string
+          format: uuid
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameplayRound"
+    PlayRoundRequest:
+      type: object
+      additionalProperties: false
+      required: [player_card_id, opponent_card_id, selected_attribute]
+      properties:
+        player_card_id:
+          type: string
+          format: uuid
+        opponent_card_id:
+          type: string
+          format: uuid
+        selected_attribute:
+          type: string
+          enum: [speed, strength, intelligence, resistance, rarity]
     LoginPlayerRequest:
       type: object
       required: [email, password]
