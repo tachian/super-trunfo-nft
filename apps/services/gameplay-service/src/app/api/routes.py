@@ -113,10 +113,10 @@ def create_gameplay_router() -> APIRouter:
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"detail": "Match not found."},
             )
-        except MatchPlayValidationError as exc:
+        except MatchPlayValidationError:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={"detail": str(exc)},
+                content={"detail": "Invalid round play."},
             )
 
         return match_response(match)
