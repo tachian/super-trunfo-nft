@@ -78,12 +78,19 @@ const requiredGameplayContractFragments = [
   "operationId: getMatchState",
   "operationId: playRound",
   "operationId: getMatchReplay",
+  "operationId: streamMatchEvents",
+  "x-websocket: true",
   "GameplayMatch:",
   "GameplayParticipant:",
   "GameplayRound:",
   "GameplayScore:",
+  "GameplayRealtimeEvent:",
   "PlayRoundRequest:",
   "MatchReplay:",
+  "AttributeSelected",
+  "RoundFinished",
+  "MatchResultUpdated",
+  "PlayerRankUpdated",
   "additionalProperties: false",
   "enum: [in_progress, finished, abandoned]",
   "enum: [speed, strength, intelligence, resistance, rarity]",
@@ -129,6 +136,7 @@ const requiredGameplayDomainFragments = [
   "BotStrategy",
   "BOT deck must be equivalent",
   "BOT strategy prefers the strongest card attribute",
+  "Gameplay publishes realtime WebSocket events for attribute selection, round result, match result and ranking updates.",
 ];
 
 for (const fragment of requiredGameplayDomainFragments) {
@@ -194,6 +202,22 @@ const requiredCardEventFragments = [
 for (const fragment of requiredCardEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing card event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredGameplayEventFragments = [
+  "name: AttributeSelected",
+  "name: RoundFinished",
+  "name: MatchResultUpdated",
+  "producer: gameplay-service",
+  "selected_attribute: string",
+  "player_score: integer",
+  "opponent_score: integer",
+];
+
+for (const fragment of requiredGameplayEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing gameplay event contract fragment: ${fragment}`);
   }
 }
 

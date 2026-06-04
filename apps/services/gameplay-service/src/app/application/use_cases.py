@@ -1,13 +1,19 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.domain.entities import Match, ParticipantKind, PlayableAttribute, create_match
+from app.domain.entities import (
+    Match,
+    ParticipantKind,
+    PlayableAttribute,
+    create_match,
+    round_realtime_events,
+)
 from app.domain.exceptions import (
     GameplayInvariantError,
     MatchNotFoundError,
     MatchPlayValidationError,
 )
-from app.domain.repositories import MatchRepository
+from app.domain.repositories import GameplayRealtimePublisher, MatchRepository
 
 
 @dataclass(frozen=True)
@@ -64,8 +70,13 @@ class GetMatchState:
 
 
 class PlayRound:
-    def __init__(self, repository: MatchRepository) -> None:
+    def __init__(
+        self,
+        repository: MatchRepository,
+        realtime_publisher: GameplayRealtimePublisher | None = None,
+    ) -> None:
         self.repository = repository
+        self.realtime_publisher = realtime_publisher
 
     def execute(self, command: PlayRoundCommand) -> Match:
         match = self.repository.find_by_id(command.match_id)
@@ -83,5 +94,12 @@ class PlayRound:
             raise MatchPlayValidationError(str(exc)) from exc
 
         self.repository.save(updated_match)
+
+        if self.realtime_publisher is not None:
+            for event in round_realtime_events(
+                match=updated_match,
+                round_item=updated_match.rounds[-1],
+            ):
+                self.realtime_publisher.publish(event)
 
         return updated_match

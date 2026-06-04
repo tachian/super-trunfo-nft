@@ -227,6 +227,44 @@ async def test_match_api_flow_get_play_get_and_replay() -> None:
     assert replay_response.json()["rounds"] == updated_response.json()["rounds"]
 
 
+def test_gameplay_routes_include_realtime_websocket() -> None:
+    assert any(
+        getattr(route, "path", None) == "/match/{match_id}/events"
+        for route in app.routes
+    )
+
+
+@pytest.mark.anyio
+async def test_play_round_publishes_realtime_events_to_match_bus() -> None:
+    match = persisted_match()
+    app.state.gameplay_realtime_event_bus.clear()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+
+    events = app.state.gameplay_realtime_event_bus.events_for_match(match.id)
+
+    assert response.status_code == 200
+    assert [event.name.value for event in events] == [
+        "AttributeSelected",
+        "RoundFinished",
+        "MatchResultUpdated",
+        "PlayerRankUpdated",
+    ]
+    assert events[0].payload["selected_attribute"] == "speed"
+    assert events[2].payload["score"] == {"player": 0, "opponent": 0}
+
+
 def test_gameplay_openapi_exposes_match_api_operations() -> None:
     openapi = app.openapi()
 

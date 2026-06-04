@@ -87,7 +87,9 @@ contexts:
       - GetMatchState
       - GetMatchReplay
     events:
+      - AttributeSelected
       - RoundFinished
+      - MatchResultUpdated
       - PlayerWonMatch
       - MatchAbandoned
     invariants:
@@ -96,6 +98,7 @@ contexts:
       - Round winner receives one point.
       - Round payloads cannot carry client supplied score or winner mutations.
       - Round play accepts only cards from the active match decks.
+      - Gameplay publishes realtime WebSocket events for attribute selection, round result, match result and ranking updates.
       - BOT deck must be equivalent to the player deck within plus or minus 20 level points.
       - BOT strategy prefers the strongest card attribute with configurable probability.
   economy:

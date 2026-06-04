@@ -206,6 +206,22 @@ paths:
                 $ref: "#/components/schemas/MatchReplay"
         "404":
           description: Match not found
+  /match/{id}/events:
+    get:
+      summary: Stream realtime match events
+      operationId: streamMatchEvents
+      tags: [Gameplay]
+      x-websocket: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "101":
+          description: WebSocket stream for round, result and ranking events
   /shop/offers:
     get:
       summary: List shop offers
@@ -554,6 +570,34 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GameplayRound"
+    GameplayRealtimeEvent:
+      type: object
+      required: [id, name, schema_version, match_id, payload, occurred_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          enum:
+            [
+              AttributeSelected,
+              RoundFinished,
+              MatchResultUpdated,
+              PlayerRankUpdated,
+            ]
+        schema_version:
+          type: string
+          enum: [1.0.0]
+        match_id:
+          type: string
+          format: uuid
+        payload:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
     PlayRoundRequest:
       type: object
       additionalProperties: false
