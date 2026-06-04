@@ -6,7 +6,7 @@ from app.infrastructure.repositories import InMemoryMatchRepository
 SERVICE_NAME = "gameplay-service"
 CONTEXT = "gameplay"
 PLANNED_ROUTES = [
-    {"method": "GET", "path": "/match/{id}", "task": "ST-302"},
+    {"method": "GET", "path": "/match/{id}", "task": "ST-305"},
     {"method": "POST", "path": "/match/{id}/play", "task": "ST-305"},
     {"method": "GET", "path": "/match/{id}/replay", "task": "ST-304"},
 ]
