@@ -76,10 +76,15 @@ for (const fragment of requiredNftContractFragments) {
 
 const requiredGameplayContractFragments = [
   "operationId: getMatchState",
+  "operationId: playRound",
+  "operationId: getMatchReplay",
   "GameplayMatch:",
   "GameplayParticipant:",
   "GameplayRound:",
   "GameplayScore:",
+  "PlayRoundRequest:",
+  "MatchReplay:",
+  "additionalProperties: false",
   "enum: [in_progress, finished, abandoned]",
   "enum: [speed, strength, intelligence, resistance, rarity]",
 ];

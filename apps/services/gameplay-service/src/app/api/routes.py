@@ -3,11 +3,16 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-from app.application.use_cases import GetMatchState, GetMatchStateQuery
-from app.domain.entities import Match, MatchParticipant, Round
-from app.domain.exceptions import MatchNotFoundError
+from app.application.use_cases import (
+    GetMatchState,
+    GetMatchStateQuery,
+    PlayRound,
+    PlayRoundCommand,
+)
+from app.domain.entities import Match, MatchParticipant, PlayableAttribute, Round
+from app.domain.exceptions import MatchNotFoundError, MatchPlayValidationError
 
 
 class ParticipantResponse(BaseModel):
@@ -42,6 +47,19 @@ class MatchResponse(BaseModel):
     finished_at: datetime | None
 
 
+class PlayRoundRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    player_card_id: UUID
+    opponent_card_id: UUID
+    selected_attribute: PlayableAttribute
+
+
+class MatchReplayResponse(BaseModel):
+    match_id: str
+    rounds: list[RoundResponse]
+
+
 def create_gameplay_router() -> APIRouter:
     router = APIRouter(tags=["gameplay"])
 
@@ -66,23 +84,66 @@ def create_gameplay_router() -> APIRouter:
 
         return match_response(match)
 
-    @router.post("/match/{match_id}/play", status_code=status.HTTP_202_ACCEPTED)
-    async def play_round(match_id: str) -> dict[str, str]:
-        return {
-            "service": "gameplay-service",
-            "match_id": match_id,
-            "status": "planned",
-            "task": "ST-305",
-        }
+    @router.post(
+        "/match/{match_id}/play",
+        response_model=MatchResponse,
+        responses={
+            400: {"description": "Invalid round play"},
+            404: {"description": "Match not found"},
+        },
+    )
+    async def play_round(
+        match_id: UUID,
+        payload: PlayRoundRequest,
+        request: Request,
+    ) -> MatchResponse | JSONResponse:
+        use_case = PlayRound(request.app.state.match_repository)
 
-    @router.get("/match/{match_id}/replay", status_code=status.HTTP_202_ACCEPTED)
-    async def match_replay(match_id: str) -> dict[str, str]:
-        return {
-            "service": "gameplay-service",
-            "match_id": match_id,
-            "status": "planned",
-            "task": "ST-304",
-        }
+        try:
+            match = use_case.execute(
+                PlayRoundCommand(
+                    match_id=match_id,
+                    player_card_id=payload.player_card_id,
+                    opponent_card_id=payload.opponent_card_id,
+                    selected_attribute=payload.selected_attribute,
+                )
+            )
+        except MatchNotFoundError:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"detail": "Match not found."},
+            )
+        except MatchPlayValidationError as exc:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": str(exc)},
+            )
+
+        return match_response(match)
+
+    @router.get(
+        "/match/{match_id}/replay",
+        response_model=MatchReplayResponse,
+        responses={404: {"description": "Match not found"}},
+    )
+    async def match_replay(
+        match_id: UUID,
+        request: Request,
+    ) -> MatchReplayResponse | JSONResponse:
+        use_case = GetMatchState(request.app.state.match_repository)
+
+        try:
+            match = use_case.execute(GetMatchStateQuery(match_id=match_id))
+        except MatchNotFoundError:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"detail": "Match not found."},
+            )
+
+        return MatchReplayResponse(
+            match_id=str(match.id),
+            rounds=[round_response(round_item) for round_item in match.rounds],
+        )
 
     return router
 

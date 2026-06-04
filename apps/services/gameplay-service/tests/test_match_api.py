@@ -53,5 +53,164 @@ async def test_get_unknown_match_returns_not_found() -> None:
     assert response.json()["detail"] == "Match not found."
 
 
+@pytest.mark.anyio
+async def test_play_round_accepts_valid_cards_and_attribute() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["id"] == str(match.id)
+    assert payload["rounds"][0]["number"] == 1
+    assert payload["rounds"][0]["selected_attribute"] == "speed"
+    assert payload["score"] == {"player": 0, "opponent": 0}
+
+
+@pytest.mark.anyio
+async def test_play_round_rejects_invalid_card() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": "cccccccc-cccc-4ccc-8ccc-000000000001",
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+
+    assert response.status_code == 400
+    assert "player card" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_play_round_rejects_card_replay() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[1]),
+                "selected_attribute": "strength",
+            },
+        )
+
+    assert response.status_code == 400
+    assert "already played" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_play_round_rejects_invalid_attribute() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "luck",
+            },
+        )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.anyio
+async def test_play_round_rejects_client_score_mutation() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+                "winner_id": str(match.player.id),
+                "score": {"player": 10, "opponent": 0},
+            },
+        )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.anyio
+async def test_match_replay_returns_authoritative_rounds() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+        response = await client.get(f"/match/{match.id}/replay")
+
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["match_id"] == str(match.id)
+    assert payload["rounds"][0]["number"] == 1
+    assert payload["rounds"][0]["selected_attribute"] == "speed"
+
+
+def persisted_match():
+    app.state.match_repository.clear()
+    match = create_match(
+        player_id=UUID("11111111-1111-4111-8111-111111111302"),
+        opponent_id=UUID("22222222-2222-4222-8222-222222222302"),
+        player_deck_card_ids=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1),
+        opponent_deck_card_ids=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1),
+        match_id=UUID("33333333-3333-4333-8333-333333333302"),
+        created_at=datetime(2026, 6, 29, tzinfo=UTC),
+    )
+    app.state.match_repository.save(match)
+
+    return match
+
+
 def deck_ids(prefix: str, start: int) -> tuple[UUID, ...]:
     return tuple(UUID(f"{prefix}-{index:012d}") for index in range(start, start + 10))

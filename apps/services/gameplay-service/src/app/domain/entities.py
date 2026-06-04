@@ -58,7 +58,12 @@ class Round:
         if self.number < 1:
             raise GameplayInvariantError("round number must be greater than zero")
 
-        object.__setattr__(self, "selected_attribute", PlayableAttribute(self.selected_attribute))
+        try:
+            selected_attribute = PlayableAttribute(self.selected_attribute)
+        except ValueError as exc:
+            raise GameplayInvariantError("selected attribute is invalid") from exc
+
+        object.__setattr__(self, "selected_attribute", selected_attribute)
 
 
 @dataclass(frozen=True)
@@ -114,6 +119,62 @@ class Match:
                 opponent_score += 1
 
         return MatchScore(player=player_score, opponent=opponent_score)
+
+    @property
+    def used_player_card_ids(self) -> tuple[UUID, ...]:
+        return tuple(round_item.player_card_id for round_item in self.rounds)
+
+    @property
+    def used_opponent_card_ids(self) -> tuple[UUID, ...]:
+        return tuple(round_item.opponent_card_id for round_item in self.rounds)
+
+    def record_round(
+        self,
+        *,
+        player_card_id: UUID,
+        opponent_card_id: UUID,
+        selected_attribute: PlayableAttribute | str,
+        winner_id: UUID | None = None,
+        played_at: datetime | None = None,
+    ) -> "Match":
+        if self.status != MatchStatus.IN_PROGRESS:
+            raise GameplayInvariantError("match is not in progress")
+
+        if player_card_id not in self.player.deck_card_ids:
+            raise GameplayInvariantError("player card is not part of the match deck")
+
+        if opponent_card_id not in self.opponent.deck_card_ids:
+            raise GameplayInvariantError("opponent card is not part of the match deck")
+
+        if player_card_id in self.used_player_card_ids:
+            raise GameplayInvariantError("player card was already played in this match")
+
+        if opponent_card_id in self.used_opponent_card_ids:
+            raise GameplayInvariantError("opponent card was already played in this match")
+
+        if winner_id is not None and winner_id not in (self.player.id, self.opponent.id):
+            raise GameplayInvariantError("round winner must be one of the participants")
+
+        return Match(
+            id=self.id,
+            player=self.player,
+            opponent=self.opponent,
+            rounds=(
+                *self.rounds,
+                Round(
+                    number=len(self.rounds) + 1,
+                    player_card_id=player_card_id,
+                    opponent_card_id=opponent_card_id,
+                    selected_attribute=selected_attribute,
+                    winner_id=winner_id,
+                    played_at=played_at or datetime.now(UTC),
+                ),
+            ),
+            status=self.status,
+            created_at=self.created_at,
+            winner_id=self.winner_id,
+            finished_at=self.finished_at,
+        )
 
 
 def create_match(
