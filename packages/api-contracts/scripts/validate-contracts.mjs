@@ -95,6 +95,21 @@ for (const fragment of requiredGameplayContractFragments) {
   }
 }
 
+const requiredMatchmakingContractFragments = [
+  "operationId: getMatchmakingQueues",
+  "MatchmakingQueue:",
+  "MatchmakingQueues:",
+  "enum: [queue:bronze, queue:silver, queue:gold]",
+  "enum: [ST-401]",
+  "enum: [redis]",
+];
+
+for (const fragment of requiredMatchmakingContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing matchmaking contract fragment: ${fragment}`);
+  }
+}
+
 const domainContracts = readFileSync(
   join(packageRoot, "domain/domain-contracts.yaml"),
   "utf8",
@@ -108,6 +123,18 @@ const requiredGameplayDomainFragments = [
 for (const fragment of requiredGameplayDomainFragments) {
   if (!domainContracts.includes(fragment)) {
     throw new Error(`Missing gameplay domain contract fragment: ${fragment}`);
+  }
+}
+
+const requiredMatchmakingDomainFragments = [
+  "Matchmaking Redis queues are named queue:bronze, queue:silver and queue:gold.",
+];
+
+for (const fragment of requiredMatchmakingDomainFragments) {
+  if (!domainContracts.includes(fragment)) {
+    throw new Error(
+      `Missing matchmaking domain contract fragment: ${fragment}`,
+    );
   }
 }
 

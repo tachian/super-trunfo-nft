@@ -110,6 +110,18 @@ paths:
       responses:
         "202":
           description: Planned endpoint
+  /matchmaking/queues:
+    get:
+      summary: Get matchmaking tier queues
+      operationId: getMatchmakingQueues
+      tags: [Matchmaking]
+      responses:
+        "200":
+          description: Redis tier queues configured for matchmaking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchmakingQueues"
   /match/{id}:
     get:
       summary: Get match state
@@ -545,6 +557,38 @@ components:
         selected_attribute:
           type: string
           enum: [speed, strength, intelligence, resistance, rarity]
+    MatchmakingQueue:
+      type: object
+      required: [tier, name, size]
+      properties:
+        tier:
+          type: string
+          enum: [bronze, silver, gold]
+        name:
+          type: string
+          enum: [queue:bronze, queue:silver, queue:gold]
+        size:
+          type: integer
+          minimum: 0
+    MatchmakingQueues:
+      type: object
+      required: [service, task, backend, queues]
+      properties:
+        service:
+          type: string
+          enum: [matchmaking-service]
+        task:
+          type: string
+          enum: [ST-401]
+        backend:
+          type: string
+          enum: [redis]
+        queues:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/MatchmakingQueue"
     LoginPlayerRequest:
       type: object
       required: [email, password]
