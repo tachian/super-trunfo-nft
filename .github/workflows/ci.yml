@@ -210,4 +210,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
             -Dsonar.qualitygate.wait=true

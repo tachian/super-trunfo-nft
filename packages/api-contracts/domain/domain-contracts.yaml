@@ -90,6 +90,8 @@ contexts:
       - Only backend can calculate round and match results.
       - A card cannot be replayed in the same match after use.
       - Round winner receives one point.
+      - BOT deck must be equivalent to the player deck within plus or minus 20 level points.
+      - BOT strategy prefers the strongest card attribute with configurable probability.
   economy:
     service: economy-service
     aggregates:
