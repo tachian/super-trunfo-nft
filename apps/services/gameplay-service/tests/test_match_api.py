@@ -197,6 +197,46 @@ async def test_match_replay_returns_authoritative_rounds() -> None:
     assert payload["rounds"][0]["selected_attribute"] == "speed"
 
 
+@pytest.mark.anyio
+async def test_match_api_flow_get_play_get_and_replay() -> None:
+    match = persisted_match()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        initial_response = await client.get(f"/match/{match.id}")
+        play_response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "resistance",
+            },
+        )
+        updated_response = await client.get(f"/match/{match.id}")
+        replay_response = await client.get(f"/match/{match.id}/replay")
+
+    assert initial_response.status_code == 200
+    assert initial_response.json()["rounds"] == []
+    assert play_response.status_code == 200
+    assert play_response.json()["rounds"][0]["selected_attribute"] == "resistance"
+    assert updated_response.status_code == 200
+    assert len(updated_response.json()["rounds"]) == 1
+    assert replay_response.status_code == 200
+    assert replay_response.json()["rounds"] == updated_response.json()["rounds"]
+
+
+def test_gameplay_openapi_exposes_match_api_operations() -> None:
+    openapi = app.openapi()
+
+    assert openapi["paths"]["/match/{match_id}"]["get"]["operationId"] == "getMatchState"
+    assert openapi["paths"]["/match/{match_id}/play"]["post"]["operationId"] == "playRound"
+    assert openapi["paths"]["/match/{match_id}/replay"]["get"]["operationId"] == "getMatchReplay"
+    assert "PlayRoundRequest" in openapi["components"]["schemas"]
+    assert "MatchResponse" in openapi["components"]["schemas"]
+
+
 def persisted_match():
     app.state.match_repository.clear()
     match = create_match(

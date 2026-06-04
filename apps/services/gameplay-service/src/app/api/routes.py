@@ -65,6 +65,7 @@ def create_gameplay_router() -> APIRouter:
 
     @router.get(
         "/match/{match_id}",
+        operation_id="getMatchState",
         response_model=MatchResponse,
         responses={404: {"description": "Match not found"}},
     )
@@ -86,6 +87,7 @@ def create_gameplay_router() -> APIRouter:
 
     @router.post(
         "/match/{match_id}/play",
+        operation_id="playRound",
         response_model=MatchResponse,
         responses={
             400: {"description": "Invalid round play"},
@@ -123,6 +125,7 @@ def create_gameplay_router() -> APIRouter:
 
     @router.get(
         "/match/{match_id}/replay",
+        operation_id="getMatchReplay",
         response_model=MatchReplayResponse,
         responses={404: {"description": "Match not found"}},
     )
