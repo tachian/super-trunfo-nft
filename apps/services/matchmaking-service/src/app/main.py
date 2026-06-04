@@ -1,5 +1,8 @@
-from fastapi import status
 from super_trunfo_shared.api import create_service_app
+
+from app.api.routes import create_matchmaking_router
+from app.application.use_cases import ConfigureTierQueues
+from app.infrastructure.repositories import InMemoryMatchmakingQueueRepository
 
 SERVICE_NAME = "matchmaking-service"
 CONTEXT = "matchmaking"
@@ -13,24 +16,6 @@ app = create_service_app(
     context=CONTEXT,
     planned_routes=PLANNED_ROUTES,
 )
-
-
-@app.post("/matchmaking/find", status_code=status.HTTP_202_ACCEPTED, tags=["matchmaking"])
-async def find_match() -> dict[str, str]:
-    return {
-        "service": SERVICE_NAME,
-        "status": "planned",
-        "task": "ST-402",
-        "fallback": "pve-bot",
-    }
-
-
-@app.get("/matchmaking/queues", status_code=status.HTTP_202_ACCEPTED, tags=["matchmaking"])
-async def matchmaking_queues() -> dict[str, object]:
-    return {
-        "service": SERVICE_NAME,
-        "status": "planned",
-        "task": "ST-401",
-        "queues": ["queue:bronze", "queue:silver", "queue:gold"],
-    }
-
+app.state.matchmaking_queue_repository = InMemoryMatchmakingQueueRepository()
+ConfigureTierQueues(app.state.matchmaking_queue_repository).execute()
+app.include_router(create_matchmaking_router())

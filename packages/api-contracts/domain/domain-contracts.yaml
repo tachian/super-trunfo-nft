@@ -66,6 +66,7 @@ contexts:
       - MatchStarted
       - BotMatchCreated
     invariants:
+      - Matchmaking Redis queues are named queue:bronze, queue:silver and queue:gold.
       - Player deck level tolerance starts at plus or minus 20 points.
       - Bot fallback must use an equivalent deck level.
   gameplay:
