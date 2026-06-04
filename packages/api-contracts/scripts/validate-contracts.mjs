@@ -74,6 +74,22 @@ for (const fragment of requiredNftContractFragments) {
   }
 }
 
+const requiredGameplayContractFragments = [
+  "operationId: getMatchState",
+  "GameplayMatch:",
+  "GameplayParticipant:",
+  "GameplayRound:",
+  "GameplayScore:",
+  "enum: [in_progress, finished, abandoned]",
+  "enum: [speed, strength, intelligence, resistance, rarity]",
+];
+
+for (const fragment of requiredGameplayContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing gameplay contract fragment: ${fragment}`);
+  }
+}
+
 const domainEventsContract = readFileSync(
   join(packageRoot, "events/domain-events.yaml"),
   "utf8",

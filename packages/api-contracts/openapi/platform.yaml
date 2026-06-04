@@ -113,6 +113,7 @@ paths:
   /match/{id}:
     get:
       summary: Get match state
+      operationId: getMatchState
       tags: [Gameplay]
       parameters:
         - name: id
@@ -122,8 +123,14 @@ paths:
             type: string
             format: uuid
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Match state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameplayMatch"
+        "404":
+          description: Match not found
   /match/{id}/play:
     post:
       summary: Play a round
@@ -378,6 +385,103 @@ components:
         expires_at:
           type: string
           format: date-time
+    GameplayMatch:
+      type: object
+      required:
+        - id
+        - player
+        - opponent
+        - rounds
+        - score
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        player:
+          $ref: "#/components/schemas/GameplayParticipant"
+        opponent:
+          $ref: "#/components/schemas/GameplayParticipant"
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameplayRound"
+        score:
+          $ref: "#/components/schemas/GameplayScore"
+        status:
+          type: string
+          enum: [in_progress, finished, abandoned]
+        winner_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+    GameplayParticipant:
+      type: object
+      required: [id, kind, deck_card_ids]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [player, bot]
+        deck_card_ids:
+          type: array
+          minItems: 10
+          maxItems: 10
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+    GameplayRound:
+      type: object
+      required:
+        - number
+        - player_card_id
+        - opponent_card_id
+        - selected_attribute
+        - played_at
+      properties:
+        number:
+          type: integer
+          minimum: 1
+        player_card_id:
+          type: string
+          format: uuid
+        opponent_card_id:
+          type: string
+          format: uuid
+        selected_attribute:
+          type: string
+          enum: [speed, strength, intelligence, resistance, rarity]
+        winner_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        played_at:
+          type: string
+          format: date-time
+    GameplayScore:
+      type: object
+      required: [player, opponent]
+      properties:
+        player:
+          type: integer
+          minimum: 0
+        opponent:
+          type: integer
+          minimum: 0
     LoginPlayerRequest:
       type: object
       required: [email, password]
