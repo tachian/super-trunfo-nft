@@ -1,6 +1,11 @@
 from threading import Lock
 
-from app.domain.entities import MatchmakingTicket, TierQueue, queue_name_for_tier
+from app.domain.entities import (
+    MatchmakingTicket,
+    MatchStartedEvent,
+    TierQueue,
+    queue_name_for_tier,
+)
 
 
 class InMemoryMatchmakingQueueRepository:
@@ -45,3 +50,23 @@ class InMemoryMatchmakingQueueRepository:
     def clear(self) -> None:
         with self._lock:
             self._queues.clear()
+
+
+class InMemoryMatchmakingEventPublisher:
+    """In-memory event publisher for local tests and service bootstrapping."""
+
+    def __init__(self) -> None:
+        self._events: list[MatchStartedEvent] = []
+        self._lock = Lock()
+
+    def publish(self, event: MatchStartedEvent) -> None:
+        with self._lock:
+            self._events.append(event)
+
+    def published_events(self) -> tuple[MatchStartedEvent, ...]:
+        with self._lock:
+            return tuple(self._events)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._events.clear()

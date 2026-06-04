@@ -3,13 +3,22 @@ from uuid import UUID, uuid4
 
 from app.domain.entities import (
     LEVEL_TOLERANCE,
+    MatchmakingMatch,
     MatchmakingTicket,
+    MatchStartedEvent,
     TierQueue,
     configured_tier_queues,
+    create_pve_match,
+    create_pvp_match,
+    match_started_event,
     queue_name_for_tier,
     tier_for_average_level,
 )
-from app.domain.repositories import MatchmakingQueueRepository, QueueStatus
+from app.domain.repositories import (
+    MatchmakingEventPublisher,
+    MatchmakingQueueRepository,
+    QueueStatus,
+)
 
 
 @dataclass(frozen=True)
@@ -21,6 +30,7 @@ class GetQueueStatusResult:
 class RequestMatchCommand:
     player_id: UUID
     average_deck_level: int
+    fallback_after_seconds: int = 0
     ticket_id: UUID | None = None
 
 
@@ -29,7 +39,10 @@ class RequestMatchResult:
     ticket: MatchmakingTicket
     status: str
     matched_ticket: MatchmakingTicket | None = None
+    match: MatchmakingMatch | None = None
+    events: tuple[MatchStartedEvent, ...] = ()
     tolerance: int = LEVEL_TOLERANCE
+    fallback_after_seconds: int = 0
 
     @property
     def ticket_queue(self) -> TierQueue:
@@ -70,10 +83,18 @@ class GetQueueStatus:
 
 
 class RequestMatch:
-    def __init__(self, repository: MatchmakingQueueRepository) -> None:
+    def __init__(
+        self,
+        repository: MatchmakingQueueRepository,
+        event_publisher: MatchmakingEventPublisher,
+    ) -> None:
         self.repository = repository
+        self.event_publisher = event_publisher
 
     def execute(self, command: RequestMatchCommand) -> RequestMatchResult:
+        if command.fallback_after_seconds < 0:
+            raise ValueError("fallback_after_seconds cannot be negative")
+
         ticket = MatchmakingTicket(
             id=command.ticket_id or uuid4(),
             player_id=command.player_id,
@@ -87,12 +108,36 @@ class RequestMatch:
         )
 
         if matched_ticket is not None:
+            match = create_pvp_match(ticket=ticket, opponent_ticket=matched_ticket)
+            event = match_started_event(match)
+            self.event_publisher.publish(event)
+
             return RequestMatchResult(
                 ticket=ticket,
                 status="matched",
                 matched_ticket=matched_ticket,
+                match=match,
+                events=(event,),
+                fallback_after_seconds=command.fallback_after_seconds,
+            )
+
+        if command.fallback_after_seconds == 0:
+            match = create_pve_match(ticket=ticket)
+            event = match_started_event(match)
+            self.event_publisher.publish(event)
+
+            return RequestMatchResult(
+                ticket=ticket,
+                status="pve_created",
+                match=match,
+                events=(event,),
+                fallback_after_seconds=command.fallback_after_seconds,
             )
 
         self.repository.enqueue_ticket(ticket)
 
-        return RequestMatchResult(ticket=ticket, status="queued")
+        return RequestMatchResult(
+            ticket=ticket,
+            status="queued",
+            fallback_after_seconds=command.fallback_after_seconds,
+        )

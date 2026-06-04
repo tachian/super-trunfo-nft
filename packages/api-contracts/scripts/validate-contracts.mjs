@@ -101,7 +101,12 @@ const requiredMatchmakingContractFragments = [
   "FindMatchRequest:",
   "FindMatchResponse:",
   "MatchmakingTicket:",
-  "enum: [queued, matched]",
+  "MatchmakingOpponent:",
+  "MatchmakingMatch:",
+  "MatchmakingEvent:",
+  "fallback_after_seconds:",
+  "enum: [queued, matched, pve_created]",
+  "enum: [pvp, pve]",
   "enum: [20]",
   "MatchmakingQueue:",
   "MatchmakingQueues:",
@@ -135,6 +140,8 @@ for (const fragment of requiredGameplayDomainFragments) {
 const requiredMatchmakingDomainFragments = [
   "Matchmaking Redis queues are named queue:bronze, queue:silver and queue:gold.",
   "Players are paired only when their average deck levels differ by at most 20 points.",
+  "PvE fallback creates a BOT opponent with the same average deck level as the player ticket.",
+  "Matchmaking publishes MatchStarted when a PvP or PvE match is created.",
 ];
 
 for (const fragment of requiredMatchmakingDomainFragments) {
@@ -187,6 +194,23 @@ const requiredCardEventFragments = [
 for (const fragment of requiredCardEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing card event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredMatchmakingEventFragments = [
+  "name: MatchStarted",
+  "producer: matchmaking-service",
+  "mode: string",
+  "opponent_kind: string",
+  "player_average_deck_level: integer",
+  "opponent_average_deck_level: integer",
+  "name: BotMatchCreated",
+  "bot_average_deck_level: integer",
+];
+
+for (const fragment of requiredMatchmakingEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing matchmaking event contract fragment: ${fragment}`);
   }
 }
 

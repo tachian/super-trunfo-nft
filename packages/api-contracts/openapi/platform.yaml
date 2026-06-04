@@ -629,28 +629,129 @@ components:
         average_deck_level:
           type: integer
           minimum: 0
+        fallback_after_seconds:
+          type: integer
+          minimum: 0
+          default: 0
+          description: Seconds to keep the ticket queued before PvE fallback.
+    MatchmakingOpponent:
+      type: object
+      required: [id, kind, average_deck_level, tier]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [player, bot]
+        average_deck_level:
+          type: integer
+          minimum: 0
+        tier:
+          type: string
+          enum: [bronze, silver, gold]
+        ticket_id:
+          type: string
+          format: uuid
+          nullable: true
+    MatchmakingMatch:
+      type: object
+      required: [id, mode, opponent]
+      properties:
+        id:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum: [pvp, pve]
+        opponent:
+          $ref: "#/components/schemas/MatchmakingOpponent"
+    MatchmakingEvent:
+      type: object
+      required:
+        - name
+        - schema_version
+        - match_id
+        - mode
+        - player_id
+        - opponent_id
+        - opponent_kind
+        - player_average_deck_level
+        - opponent_average_deck_level
+        - occurred_at
+      properties:
+        name:
+          type: string
+          enum: [MatchStarted]
+        schema_version:
+          type: string
+          enum: [1.0.0]
+        match_id:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum: [pvp, pve]
+        player_id:
+          type: string
+          format: uuid
+        opponent_id:
+          type: string
+          format: uuid
+        opponent_kind:
+          type: string
+          enum: [player, bot]
+        player_average_deck_level:
+          type: integer
+          minimum: 0
+        opponent_average_deck_level:
+          type: integer
+          minimum: 0
+        occurred_at:
+          type: string
+          format: date-time
     FindMatchResponse:
       type: object
-      required: [service, task, status, tolerance, ticket]
+      required:
+        [
+          service,
+          task,
+          status,
+          tolerance,
+          fallback_after_seconds,
+          ticket,
+          events,
+        ]
       properties:
         service:
           type: string
           enum: [matchmaking-service]
         task:
           type: string
-          enum: [ST-402]
+          enum: [ST-403]
         status:
           type: string
-          enum: [queued, matched]
+          enum: [queued, matched, pve_created]
         tolerance:
           type: integer
           enum: [20]
+        fallback_after_seconds:
+          type: integer
+          minimum: 0
         ticket:
           $ref: "#/components/schemas/MatchmakingTicket"
         matched_ticket:
           oneOf:
             - $ref: "#/components/schemas/MatchmakingTicket"
             - type: "null"
+        match:
+          oneOf:
+            - $ref: "#/components/schemas/MatchmakingMatch"
+            - type: "null"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchmakingEvent"
     LoginPlayerRequest:
       type: object
       required: [email, password]
