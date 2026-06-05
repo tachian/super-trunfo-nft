@@ -86,8 +86,42 @@ events:
       bot_average_deck_level: integer
       occurred_at: datetime
   - name: RoundFinished
+    version: 1.0.0
     producer: gameplay-service
-    consumers: [ranking-service]
+    consumers: [ranking-service, notification-service]
+    payload:
+      schema_version: string
+      match_id: uuid
+      round_number: integer
+      selected_attribute: string
+      player_card_id: uuid
+      opponent_card_id: uuid
+      winner_id: uuid|null
+      played_at: datetime
+  - name: AttributeSelected
+    version: 1.0.0
+    producer: gameplay-service
+    consumers: [notification-service]
+    payload:
+      schema_version: string
+      match_id: uuid
+      round_number: integer
+      selected_attribute: string
+      player_card_id: uuid
+      opponent_card_id: uuid
+      occurred_at: datetime
+  - name: MatchResultUpdated
+    version: 1.0.0
+    producer: gameplay-service
+    consumers: [ranking-service, notification-service]
+    payload:
+      schema_version: string
+      match_id: uuid
+      status: string
+      winner_id: uuid|null
+      player_score: integer
+      opponent_score: integer
+      occurred_at: datetime
   - name: PlayerWonMatch
     producer: gameplay-service
     consumers: [ranking-service, economy-service, notification-service]

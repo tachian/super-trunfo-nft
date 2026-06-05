@@ -1,9 +1,12 @@
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from uuid import UUID
 
 import pytest
+from app.api.routes import create_gameplay_router
 from app.domain.entities import create_match
 from app.main import app
+from fastapi import WebSocketDisconnect
 from httpx import ASGITransport, AsyncClient
 
 
@@ -48,6 +51,28 @@ async def test_get_unknown_match_returns_not_found() -> None:
         base_url="http://test",
     ) as client:
         response = await client.get(f"/match/{match_id}")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Match not found."
+
+
+@pytest.mark.anyio
+async def test_play_round_unknown_match_returns_not_found() -> None:
+    app.state.match_repository.clear()
+    match_id = UUID("33333333-3333-4333-8333-333333333404")
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match_id}/play",
+            json={
+                "player_card_id": "aaaaaaaa-aaaa-4aaa-8aaa-000000000001",
+                "opponent_card_id": "bbbbbbbb-bbbb-4bbb-8bbb-000000000001",
+                "selected_attribute": "speed",
+            },
+        )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Match not found."
@@ -198,6 +223,21 @@ async def test_match_replay_returns_authoritative_rounds() -> None:
 
 
 @pytest.mark.anyio
+async def test_match_replay_unknown_match_returns_not_found() -> None:
+    app.state.match_repository.clear()
+    match_id = UUID("33333333-3333-4333-8333-333333333404")
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.get(f"/match/{match_id}/replay")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Match not found."
+
+
+@pytest.mark.anyio
 async def test_match_api_flow_get_play_get_and_replay() -> None:
     match = persisted_match()
 
@@ -227,6 +267,68 @@ async def test_match_api_flow_get_play_get_and_replay() -> None:
     assert replay_response.json()["rounds"] == updated_response.json()["rounds"]
 
 
+def test_gameplay_routes_include_realtime_websocket() -> None:
+    assert any(
+        getattr(route, "path", None) == "/match/{match_id}/events"
+        for route in app.routes
+    )
+
+
+@pytest.mark.anyio
+async def test_match_events_websocket_streams_published_events() -> None:
+    match = persisted_match()
+    app.state.gameplay_realtime_event_bus.clear()
+    await play_first_round(match)
+    websocket = FakeWebSocket(app)
+    websocket_endpoint = next(
+        route.endpoint
+        for route in create_gameplay_router().routes
+        if getattr(route, "path", None) == "/match/{match_id}/events"
+    )
+
+    await websocket_endpoint(match.id, websocket)
+
+    assert websocket.accepted is True
+    assert [event["name"] for event in websocket.sent_messages] == [
+        "AttributeSelected",
+        "RoundFinished",
+        "MatchResultUpdated",
+        "PlayerRankUpdated",
+    ]
+    assert websocket.sent_messages[0]["payload"]["selected_attribute"] == "speed"
+
+
+@pytest.mark.anyio
+async def test_play_round_publishes_realtime_events_to_match_bus() -> None:
+    match = persisted_match()
+    app.state.gameplay_realtime_event_bus.clear()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+
+    events = app.state.gameplay_realtime_event_bus.events_for_match(match.id)
+
+    assert response.status_code == 200
+    assert [event.name.value for event in events] == [
+        "AttributeSelected",
+        "RoundFinished",
+        "MatchResultUpdated",
+        "PlayerRankUpdated",
+    ]
+    assert events[0].payload["selected_attribute"] == "speed"
+    assert events[2].payload["score"] == {"player": 0, "opponent": 0}
+
+
 def test_gameplay_openapi_exposes_match_api_operations() -> None:
     openapi = app.openapi()
 
@@ -250,6 +352,37 @@ def persisted_match():
     app.state.match_repository.save(match)
 
     return match
+
+
+async def play_first_round(match):
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        await client.post(
+            f"/match/{match.id}/play",
+            json={
+                "player_card_id": str(match.player.deck_card_ids[0]),
+                "opponent_card_id": str(match.opponent.deck_card_ids[0]),
+                "selected_attribute": "speed",
+            },
+        )
+
+
+class FakeWebSocket:
+    def __init__(self, test_app):
+        self.app = SimpleNamespace(state=test_app.state)
+        self.accepted = False
+        self.sent_messages = []
+
+    async def accept(self):
+        self.accepted = True
+
+    async def send_json(self, payload):
+        self.sent_messages.append(payload)
+
+    async def receive_text(self):
+        raise WebSocketDisconnect()
 
 
 def deck_ids(prefix: str, start: int) -> tuple[UUID, ...]:

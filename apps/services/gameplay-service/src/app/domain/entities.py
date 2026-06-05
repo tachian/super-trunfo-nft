@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Any
 from uuid import UUID, uuid4
 
 from .exceptions import GameplayInvariantError
@@ -25,6 +26,13 @@ class PlayableAttribute(StrEnum):
     INTELLIGENCE = "intelligence"
     RESISTANCE = "resistance"
     RARITY = "rarity"
+
+
+class GameplayRealtimeEventName(StrEnum):
+    ATTRIBUTE_SELECTED = "AttributeSelected"
+    ROUND_FINISHED = "RoundFinished"
+    MATCH_RESULT_UPDATED = "MatchResultUpdated"
+    PLAYER_RANK_UPDATED = "PlayerRankUpdated"
 
 
 @dataclass(frozen=True)
@@ -70,6 +78,19 @@ class Round:
 class MatchScore:
     player: int
     opponent: int
+
+
+@dataclass(frozen=True)
+class GameplayRealtimeEvent:
+    id: UUID
+    name: GameplayRealtimeEventName
+    match_id: UUID
+    payload: dict[str, Any]
+    occurred_at: datetime
+    schema_version: str = "1.0.0"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", GameplayRealtimeEventName(self.name))
 
 
 @dataclass(frozen=True)
@@ -202,4 +223,69 @@ def create_match(
         rounds=(),
         status=MatchStatus.IN_PROGRESS,
         created_at=created_at or datetime.now(UTC),
+    )
+
+
+def round_realtime_events(
+    *,
+    match: Match,
+    round_item: Round,
+    occurred_at: datetime | None = None,
+) -> tuple[GameplayRealtimeEvent, ...]:
+    event_time = occurred_at or datetime.now(UTC)
+    winner_id = str(round_item.winner_id) if round_item.winner_id else None
+
+    return (
+        GameplayRealtimeEvent(
+            id=uuid4(),
+            name=GameplayRealtimeEventName.ATTRIBUTE_SELECTED,
+            match_id=match.id,
+            payload={
+                "round_number": round_item.number,
+                "selected_attribute": round_item.selected_attribute.value,
+                "player_card_id": str(round_item.player_card_id),
+                "opponent_card_id": str(round_item.opponent_card_id),
+            },
+            occurred_at=event_time,
+        ),
+        GameplayRealtimeEvent(
+            id=uuid4(),
+            name=GameplayRealtimeEventName.ROUND_FINISHED,
+            match_id=match.id,
+            payload={
+                "round_number": round_item.number,
+                "winner_id": winner_id,
+                "played_at": round_item.played_at.isoformat(),
+            },
+            occurred_at=event_time,
+        ),
+        GameplayRealtimeEvent(
+            id=uuid4(),
+            name=GameplayRealtimeEventName.MATCH_RESULT_UPDATED,
+            match_id=match.id,
+            payload={
+                "status": match.status.value,
+                "winner_id": str(match.winner_id) if match.winner_id else None,
+                "score": {
+                    "player": match.score.player,
+                    "opponent": match.score.opponent,
+                },
+            },
+            occurred_at=event_time,
+        ),
+        GameplayRealtimeEvent(
+            id=uuid4(),
+            name=GameplayRealtimeEventName.PLAYER_RANK_UPDATED,
+            match_id=match.id,
+            payload={
+                "player_id": str(match.player.id),
+                "opponent_id": str(match.opponent.id),
+                "source": "gameplay-round-result",
+                "score": {
+                    "player": match.score.player,
+                    "opponent": match.score.opponent,
+                },
+            },
+            occurred_at=event_time,
+        ),
     )

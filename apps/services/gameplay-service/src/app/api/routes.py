@@ -1,7 +1,9 @@
+import asyncio
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 
@@ -11,7 +13,13 @@ from app.application.use_cases import (
     PlayRound,
     PlayRoundCommand,
 )
-from app.domain.entities import Match, MatchParticipant, PlayableAttribute, Round
+from app.domain.entities import (
+    GameplayRealtimeEvent,
+    Match,
+    MatchParticipant,
+    PlayableAttribute,
+    Round,
+)
 from app.domain.exceptions import MatchNotFoundError, MatchPlayValidationError
 
 
@@ -60,8 +68,39 @@ class MatchReplayResponse(BaseModel):
     rounds: list[RoundResponse]
 
 
+class GameplayRealtimeEventResponse(BaseModel):
+    id: str
+    name: str
+    schema_version: str
+    match_id: str
+    payload: dict[str, Any]
+    occurred_at: datetime
+
+
 def create_gameplay_router() -> APIRouter:
     router = APIRouter(tags=["gameplay"])
+
+    @router.websocket("/match/{match_id}/events")
+    async def match_events(match_id: UUID, websocket: WebSocket) -> None:
+        await websocket.accept()
+        event_bus = websocket.app.state.gameplay_realtime_event_bus
+        cursor = 0
+
+        try:
+            while True:
+                events = event_bus.events_for_match(match_id, after_index=cursor)
+
+                for event in events:
+                    await websocket.send_json(realtime_event_payload(event))
+
+                cursor += len(events)
+
+                try:
+                    await asyncio.wait_for(websocket.receive_text(), timeout=0.05)
+                except TimeoutError:
+                    continue
+        except WebSocketDisconnect:
+            return
 
     @router.get(
         "/match/{match_id}",
@@ -99,7 +138,10 @@ def create_gameplay_router() -> APIRouter:
         payload: PlayRoundRequest,
         request: Request,
     ) -> MatchResponse | JSONResponse:
-        use_case = PlayRound(request.app.state.match_repository)
+        use_case = PlayRound(
+            request.app.state.match_repository,
+            request.app.state.gameplay_realtime_event_bus,
+        )
 
         try:
             match = use_case.execute(
@@ -185,3 +227,14 @@ def round_response(round_item: Round) -> RoundResponse:
         winner_id=str(round_item.winner_id) if round_item.winner_id else None,
         played_at=round_item.played_at,
     )
+
+
+def realtime_event_payload(event: GameplayRealtimeEvent) -> dict[str, Any]:
+    return GameplayRealtimeEventResponse(
+        id=str(event.id),
+        name=event.name.value,
+        schema_version=event.schema_version,
+        match_id=str(event.match_id),
+        payload=event.payload,
+        occurred_at=event.occurred_at,
+    ).model_dump(mode="json")

@@ -70,6 +70,70 @@ def test_finished_match_requires_winner_and_finish_timestamp() -> None:
         )
 
 
+def test_finished_match_requires_finish_timestamp() -> None:
+    with pytest.raises(GameplayInvariantError, match="finish timestamp"):
+        Match(
+            id=UUID("33333333-3333-4333-8333-333333333302"),
+            player=participant(PLAYER_ID, "aaaaaaaa-aaaa-4aaa-8aaa"),
+            opponent=participant(OPPONENT_ID, "bbbbbbbb-bbbb-4bbb-8bbb"),
+            rounds=(round_result(1, PLAYER_ID),),
+            status=MatchStatus.FINISHED,
+            created_at=datetime(2026, 6, 29, tzinfo=UTC),
+            winner_id=PLAYER_ID,
+        )
+
+
+def test_unfinished_match_rejects_finish_timestamp() -> None:
+    with pytest.raises(GameplayInvariantError, match="unfinished"):
+        Match(
+            id=UUID("33333333-3333-4333-8333-333333333302"),
+            player=participant(PLAYER_ID, "aaaaaaaa-aaaa-4aaa-8aaa"),
+            opponent=participant(OPPONENT_ID, "bbbbbbbb-bbbb-4bbb-8bbb"),
+            rounds=(),
+            status=MatchStatus.IN_PROGRESS,
+            created_at=datetime(2026, 6, 29, tzinfo=UTC),
+            finished_at=datetime(2026, 6, 29, 1, tzinfo=UTC),
+        )
+
+
+def test_match_rejects_same_participant() -> None:
+    with pytest.raises(GameplayInvariantError, match="participants"):
+        Match(
+            id=UUID("33333333-3333-4333-8333-333333333302"),
+            player=participant(PLAYER_ID, "aaaaaaaa-aaaa-4aaa-8aaa"),
+            opponent=participant(PLAYER_ID, "bbbbbbbb-bbbb-4bbb-8bbb"),
+            rounds=(),
+            status=MatchStatus.IN_PROGRESS,
+            created_at=datetime(2026, 6, 29, tzinfo=UTC),
+        )
+
+
+def test_match_rejects_duplicated_round_numbers() -> None:
+    with pytest.raises(GameplayInvariantError, match="duplicated round"):
+        Match(
+            id=UUID("33333333-3333-4333-8333-333333333302"),
+            player=participant(PLAYER_ID, "aaaaaaaa-aaaa-4aaa-8aaa"),
+            opponent=participant(OPPONENT_ID, "bbbbbbbb-bbbb-4bbb-8bbb"),
+            rounds=(round_result(1, PLAYER_ID), round_result(1, OPPONENT_ID)),
+            status=MatchStatus.IN_PROGRESS,
+            created_at=datetime(2026, 6, 29, tzinfo=UTC),
+        )
+
+
+def test_match_rejects_winner_outside_participants() -> None:
+    with pytest.raises(GameplayInvariantError, match="winner"):
+        Match(
+            id=UUID("33333333-3333-4333-8333-333333333302"),
+            player=participant(PLAYER_ID, "aaaaaaaa-aaaa-4aaa-8aaa"),
+            opponent=participant(OPPONENT_ID, "bbbbbbbb-bbbb-4bbb-8bbb"),
+            rounds=(round_result(1, PLAYER_ID),),
+            status=MatchStatus.FINISHED,
+            created_at=datetime(2026, 6, 29, tzinfo=UTC),
+            winner_id=UUID("99999999-9999-4999-8999-999999999999"),
+            finished_at=datetime(2026, 6, 29, 1, tzinfo=UTC),
+        )
+
+
 def test_round_requires_positive_number() -> None:
     with pytest.raises(GameplayInvariantError, match="round number"):
         Round(
@@ -151,6 +215,44 @@ def test_match_rejects_card_replay() -> None:
             player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
             opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[1],
             selected_attribute=PlayableAttribute.STRENGTH,
+        )
+
+
+def test_match_rejects_opponent_card_replay() -> None:
+    match = create_match(
+        player_id=PLAYER_ID,
+        opponent_id=OPPONENT_ID,
+        player_deck_card_ids=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1),
+        opponent_deck_card_ids=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1),
+    )
+    updated_match = match.record_round(
+        player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
+        opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+        selected_attribute=PlayableAttribute.SPEED,
+    )
+
+    with pytest.raises(GameplayInvariantError, match="already played"):
+        updated_match.record_round(
+            player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[1],
+            opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+            selected_attribute=PlayableAttribute.STRENGTH,
+        )
+
+
+def test_match_rejects_round_winner_outside_participants() -> None:
+    match = create_match(
+        player_id=PLAYER_ID,
+        opponent_id=OPPONENT_ID,
+        player_deck_card_ids=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1),
+        opponent_deck_card_ids=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1),
+    )
+
+    with pytest.raises(GameplayInvariantError, match="round winner"):
+        match.record_round(
+            player_card_id=deck_ids("aaaaaaaa-aaaa-4aaa-8aaa", 1)[0],
+            opponent_card_id=deck_ids("bbbbbbbb-bbbb-4bbb-8bbb", 1)[0],
+            selected_attribute=PlayableAttribute.SPEED,
+            winner_id=UUID("99999999-9999-4999-8999-999999999999"),
         )
 
 
