@@ -12,6 +12,7 @@
     "lint": "pnpm --recursive --if-present lint",
     "local:check": "node scripts/validate-local-compose.mjs",
     "local:config": "docker compose -f infra/docker/compose.yaml config",
+    "matchmaking:load-test": "python3 scripts/matchmaking-load-test.py",
     "python:compile": "python3 -m compileall apps/services packages/python",
     "python:test": "node scripts/run-python-tests.mjs",
     "quality:duplicates": "node scripts/check-duplication.mjs",

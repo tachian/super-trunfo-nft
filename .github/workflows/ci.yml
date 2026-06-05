@@ -51,6 +51,7 @@ jobs:
       - run: ruff check apps/services packages/python
       - run: python -m compileall apps/services packages/python
       - run: pnpm python:test
+      - run: pnpm matchmaking:load-test
 
   web:
     name: Web app
