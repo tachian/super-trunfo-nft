@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
-    "@tanstack/react-query": "^5.100.14",
+    "@tanstack/react-query": "^5.101.0",
     "lucide-react": "^1.17.0",
     "next": "^16.2.7",
     "react": "^19.2.7",
@@ -18,8 +18,8 @@
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "@types/react": "^19.2.16",
+    "@types/node": "^25.9.2",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.0.2",
     "typescript": "^6.0.3"
   }

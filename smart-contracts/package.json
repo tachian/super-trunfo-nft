@@ -9,11 +9,11 @@
     "test": "XDG_CONFIG_HOME=$PWD/../.cache/xdg-config XDG_DATA_HOME=$PWD/../.cache/xdg-data XDG_CACHE_HOME=$PWD/../.cache/xdg-cache HARDHAT_DISABLE_TELEMETRY_PROMPT=true hardhat test"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "3.0.0",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "3.0.7",
     "@openzeppelin/contracts": "^5.1.0",
     "@types/chai": "^4.2.0",
-    "chai": "^5.1.2",
-    "hardhat": "^3.7.0",
+    "chai": "^6.2.2",
+    "hardhat": "^3.8.0",
     "typescript": "^6.0.3"
   }
 }
