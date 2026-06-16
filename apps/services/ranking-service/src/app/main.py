@@ -1,5 +1,8 @@
-from fastapi import status
+from super_trunfo_shared import InMemoryDomainEventPublisher
 from super_trunfo_shared.api import create_service_app
+
+from app.api.routes import create_ranking_router
+from app.infrastructure.repositories import InMemoryRatingRepository
 
 SERVICE_NAME = "ranking-service"
 CONTEXT = "ranking"
@@ -14,19 +17,9 @@ app = create_service_app(
     context=CONTEXT,
     planned_routes=PLANNED_ROUTES,
 )
-
-
-@app.get("/ranking/global", status_code=status.HTTP_202_ACCEPTED, tags=["ranking"])
-async def global_ranking() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "planned", "task": "ST-504"}
-
-
-@app.get("/ranking/friends", status_code=status.HTTP_202_ACCEPTED, tags=["ranking"])
-async def friends_ranking() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "planned", "task": "ST-504"}
-
-
-@app.post("/ranking/recalculate", status_code=status.HTTP_202_ACCEPTED, tags=["ranking"])
-async def recalculate_ranking() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "planned", "task": "ST-503"}
-
+app.state.rating_repository = InMemoryRatingRepository()
+app.state.domain_event_publisher = InMemoryDomainEventPublisher(
+    service_name=SERVICE_NAME,
+    context=CONTEXT,
+)
+app.include_router(create_ranking_router())
