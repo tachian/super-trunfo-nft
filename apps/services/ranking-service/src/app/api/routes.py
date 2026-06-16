@@ -83,10 +83,10 @@ def create_ranking_router() -> APIRouter:
                     loser_id=payload.loser_id,
                 )
             )
-        except RankingInvariantError as exc:
+        except RankingInvariantError as _exc:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={"detail": str(exc)},
+                content={"detail": "Invalid ranking recalculation"},
             )
 
         return RecalculatePlayerRatingResponse(
