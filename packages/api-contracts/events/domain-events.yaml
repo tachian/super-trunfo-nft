@@ -164,8 +164,21 @@ events:
     producer: card-service
     consumers: [economy-service, notification-service]
   - name: PlayerRankUpdated
+    version: 1.0.0
     producer: ranking-service
     consumers: [notification-service]
+    payload:
+      schema_version: string
+      match_id: uuid
+      player_id: uuid
+      previous_score: integer
+      score: integer
+      delta: integer
+      tier: string
+      matches_played: integer
+      wins: integer
+      losses: integer
+      updated_at: datetime
   - name: TradeCreated
     producer: nft-service
     consumers: [economy-service, notification-service]

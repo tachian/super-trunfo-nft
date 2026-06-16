@@ -157,6 +157,24 @@ for (const fragment of requiredEconomyContractFragments) {
   }
 }
 
+const requiredRankingContractFragments = [
+  "operationId: recalculatePlayerRating",
+  "RecalculatePlayerRatingRequest:",
+  "RecalculatePlayerRatingResponse:",
+  "RankingRating:",
+  "RankingEvent:",
+  "enum: [bronze, silver, gold, platinum, diamond]",
+  "enum: [ST-503]",
+  "enum: [ranking-service]",
+  "additionalProperties: false",
+];
+
+for (const fragment of requiredRankingContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing ranking contract fragment: ${fragment}`);
+  }
+}
+
 const domainContracts = readFileSync(
   join(packageRoot, "domain/domain-contracts.yaml"),
   "utf8",
@@ -202,6 +220,20 @@ const requiredEconomyDomainFragments = [
 for (const fragment of requiredEconomyDomainFragments) {
   if (!domainContracts.includes(fragment)) {
     throw new Error(`Missing economy domain contract fragment: ${fragment}`);
+  }
+}
+
+const requiredRankingDomainFragments = [
+  "Default rating starts at 1000 points.",
+  "RecalculatePlayerRating uses simplified ELO with K-factor 32.",
+  "Rating recalculation is idempotent per match.",
+  "Bronze tier ranges from 0 to 999.",
+  "Diamond tier starts at 2500.",
+];
+
+for (const fragment of requiredRankingDomainFragments) {
+  if (!domainContracts.includes(fragment)) {
+    throw new Error(`Missing ranking domain contract fragment: ${fragment}`);
   }
 }
 
@@ -300,6 +332,23 @@ const requiredEconomyEventFragments = [
 for (const fragment of requiredEconomyEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing economy event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredRankingEventFragments = [
+  "name: PlayerRankUpdated",
+  "producer: ranking-service",
+  "previous_score: integer",
+  "score: integer",
+  "delta: integer",
+  "tier: string",
+  "matches_played: integer",
+  "updated_at: datetime",
+];
+
+for (const fragment of requiredRankingEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing ranking event contract fragment: ${fragment}`);
   }
 }
 

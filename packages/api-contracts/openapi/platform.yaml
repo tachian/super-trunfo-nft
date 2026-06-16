@@ -309,6 +309,26 @@ paths:
       responses:
         "202":
           description: Planned endpoint
+  /ranking/recalculate:
+    post:
+      summary: Recalculate player ratings after a match
+      operationId: recalculatePlayerRating
+      tags: [Ranking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecalculatePlayerRatingRequest"
+      responses:
+        "201":
+          description: Winner and loser ratings recalculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecalculatePlayerRatingResponse"
+        "400":
+          description: Invalid ranking recalculation
   /nft/metadata/offline:
     post:
       summary: Generate offline ERC-721 metadata for a card
@@ -889,6 +909,89 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/EconomyEvent"
+    RecalculatePlayerRatingRequest:
+      type: object
+      additionalProperties: false
+      required: [match_id, winner_id, loser_id]
+      properties:
+        match_id:
+          type: string
+          format: uuid
+        winner_id:
+          type: string
+          format: uuid
+        loser_id:
+          type: string
+          format: uuid
+    RankingRating:
+      type: object
+      required:
+        [player_id, score, tier, matches_played, wins, losses, updated_at]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        score:
+          type: integer
+          minimum: 0
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum, diamond]
+        matches_played:
+          type: integer
+          minimum: 0
+        wins:
+          type: integer
+          minimum: 0
+        losses:
+          type: integer
+          minimum: 0
+        updated_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+    RankingEvent:
+      type: object
+      required: [name, aggregate_id, payload, occurred_at, event_id]
+      properties:
+        name:
+          type: string
+          enum: [PlayerRankUpdated]
+        aggregate_id:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
+        event_id:
+          type: string
+          format: uuid
+    RecalculatePlayerRatingResponse:
+      type: object
+      required: [service, task, match_id, created, winner, loser, events]
+      properties:
+        service:
+          type: string
+          enum: [ranking-service]
+        task:
+          type: string
+          enum: [ST-503]
+        match_id:
+          type: string
+          format: uuid
+        created:
+          type: boolean
+        winner:
+          $ref: "#/components/schemas/RankingRating"
+        loser:
+          $ref: "#/components/schemas/RankingRating"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/RankingEvent"
     MatchmakingQueue:
       type: object
       required: [tier, name, size]
