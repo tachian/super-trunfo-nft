@@ -128,6 +128,26 @@ for (const fragment of requiredMatchmakingContractFragments) {
   }
 }
 
+const requiredEconomyContractFragments = [
+  "operationId: getWalletCredits",
+  "operationId: applyMatchResultCredits",
+  "EconomyWalletCredits:",
+  "EconomyCreditLedgerEntry:",
+  "ApplyMatchResultCreditsRequest:",
+  "ApplyMatchResultCreditsResponse:",
+  "EconomyEvent:",
+  "enum: [victory, defeat]",
+  "enum: [match_victory, match_defeat]",
+  "enum: [ST-501]",
+  "enum: [economy-service]",
+];
+
+for (const fragment of requiredEconomyContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing economy contract fragment: ${fragment}`);
+  }
+}
+
 const domainContracts = readFileSync(
   join(packageRoot, "domain/domain-contracts.yaml"),
   "utf8",
@@ -157,6 +177,19 @@ for (const fragment of requiredMatchmakingDomainFragments) {
     throw new Error(
       `Missing matchmaking domain contract fragment: ${fragment}`,
     );
+  }
+}
+
+const requiredEconomyDomainFragments = [
+  "Match victory grants one credit in the MVP.",
+  "Defeat grants zero credits in the MVP.",
+  "Credit ledger prevents duplicate grants per player and match.",
+  "CreditsEarned is published only when a new positive credit entry is created.",
+];
+
+for (const fragment of requiredEconomyDomainFragments) {
+  if (!domainContracts.includes(fragment)) {
+    throw new Error(`Missing economy domain contract fragment: ${fragment}`);
   }
 }
 
@@ -235,6 +268,21 @@ const requiredMatchmakingEventFragments = [
 for (const fragment of requiredMatchmakingEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing matchmaking event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredEconomyEventFragments = [
+  "name: CreditsEarned",
+  "producer: economy-service",
+  "ledger_entry_id: uuid",
+  "amount: integer",
+  "balance: integer",
+  "earned_at: datetime",
+];
+
+for (const fragment of requiredEconomyEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing economy event contract fragment: ${fragment}`);
   }
 }
 

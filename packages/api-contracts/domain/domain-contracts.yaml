@@ -122,6 +122,8 @@ contexts:
     invariants:
       - Match victory grants one credit in the MVP.
       - Defeat grants zero credits in the MVP.
+      - Credit ledger prevents duplicate grants per player and match.
+      - CreditsEarned is published only when a new positive credit entry is created.
       - Purchases must be atomic against wallet balance and inventory.
   ranking:
     service: ranking-service

@@ -268,10 +268,7 @@ async def test_match_api_flow_get_play_get_and_replay() -> None:
 
 
 def test_gameplay_routes_include_realtime_websocket() -> None:
-    assert any(
-        getattr(route, "path", None) == "/match/{match_id}/events"
-        for route in app.routes
-    )
+    assert realtime_websocket_endpoint(create_gameplay_router().routes) is not None
 
 
 @pytest.mark.anyio
@@ -280,11 +277,8 @@ async def test_match_events_websocket_streams_published_events() -> None:
     app.state.gameplay_realtime_event_bus.clear()
     await play_first_round(match)
     websocket = FakeWebSocket(app)
-    websocket_endpoint = next(
-        route.endpoint
-        for route in create_gameplay_router().routes
-        if getattr(route, "path", None) == "/match/{match_id}/events"
-    )
+    websocket_endpoint = realtime_websocket_endpoint(create_gameplay_router().routes)
+    assert websocket_endpoint is not None
 
     await websocket_endpoint(match.id, websocket)
 
@@ -383,6 +377,18 @@ class FakeWebSocket:
 
     async def receive_text(self):
         raise WebSocketDisconnect()
+
+
+def realtime_websocket_endpoint(routes):
+    for route in routes:
+        endpoint = getattr(route, "endpoint", None)
+        endpoint_name = getattr(endpoint, "__name__", "")
+        path = getattr(route, "path", "")
+
+        if endpoint_name == "match_events" and path.endswith("/events"):
+            return endpoint
+
+    return None
 
 
 def deck_ids(prefix: str, start: int) -> tuple[UUID, ...]:
