@@ -131,14 +131,23 @@ for (const fragment of requiredMatchmakingContractFragments) {
 const requiredEconomyContractFragments = [
   "operationId: getWalletCredits",
   "operationId: applyMatchResultCredits",
+  "operationId: listShopOffers",
+  "operationId: buyShopOffer",
   "EconomyWalletCredits:",
   "EconomyCreditLedgerEntry:",
   "ApplyMatchResultCreditsRequest:",
   "ApplyMatchResultCreditsResponse:",
+  "ShopOfferResponse:",
+  "ShopOffersResponse:",
+  "BuyShopOfferRequest:",
+  "BuyShopOfferResponse:",
+  "EconomyPurchase:",
+  "EconomyInventoryCard:",
   "EconomyEvent:",
   "enum: [victory, defeat]",
   "enum: [match_victory, match_defeat]",
   "enum: [ST-501]",
+  "enum: [ST-502]",
   "enum: [economy-service]",
 ];
 
@@ -185,6 +194,9 @@ const requiredEconomyDomainFragments = [
   "Defeat grants zero credits in the MVP.",
   "Credit ledger prevents duplicate grants per player and match.",
   "CreditsEarned is published only when a new positive credit entry is created.",
+  "Purchases must be atomic against wallet balance and inventory.",
+  "Shop offers must have a positive price and explicit expiration.",
+  "BuyShopOffer rejects expired offers and insufficient wallet credits.",
 ];
 
 for (const fragment of requiredEconomyDomainFragments) {
@@ -273,8 +285,13 @@ for (const fragment of requiredMatchmakingEventFragments) {
 
 const requiredEconomyEventFragments = [
   "name: CreditsEarned",
+  "name: OfferPurchased",
   "producer: economy-service",
   "ledger_entry_id: uuid",
+  "purchase_id: uuid",
+  "inventory_card_id: uuid",
+  "offer_id: uuid",
+  "purchased_at: datetime",
   "amount: integer",
   "balance: integer",
   "earned_at: datetime",

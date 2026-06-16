@@ -3,7 +3,7 @@ from uuid import UUID
 
 from super_trunfo_shared import DomainEvent
 
-from .entities import Wallet
+from .entities import ShopOffer, Wallet
 
 
 class WalletRepository(Protocol):
@@ -14,7 +14,14 @@ class WalletRepository(Protocol):
         """Find a wallet by player id."""
 
 
+class ShopOfferRepository(Protocol):
+    def list_active(self) -> tuple[ShopOffer, ...]:
+        """List active shop offers."""
+
+    def find_by_id(self, offer_id: UUID) -> ShopOffer | None:
+        """Find a shop offer by id."""
+
+
 class DomainEventPublisher(Protocol):
     def publish(self, event: DomainEvent) -> None:
         """Publish a domain event."""
-

@@ -225,17 +225,37 @@ paths:
   /shop/offers:
     get:
       summary: List shop offers
+      operationId: listShopOffers
       tags: [Economy]
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Active card shop offers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopOffersResponse"
   /shop/buy:
     post:
       summary: Buy a card or pack
+      operationId: buyShopOffer
       tags: [Economy]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BuyShopOfferRequest"
       responses:
-        "202":
-          description: Planned endpoint
+        "201":
+          description: Shop offer purchased
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuyShopOfferResponse"
+        "404":
+          description: Wallet or shop offer not found
+        "409":
+          description: Shop offer cannot be purchased
   /wallet/credits:
     get:
       summary: Get wallet credit balance
@@ -679,7 +699,7 @@ components:
       properties:
         name:
           type: string
-          enum: [CreditsEarned]
+          enum: [CreditsEarned, OfferPurchased]
         aggregate_id:
           type: string
         payload:
@@ -691,6 +711,133 @@ components:
         event_id:
           type: string
           format: uuid
+    ShopOfferResponse:
+      type: object
+      required: [id, card_id, card_name, family, rarity, price, expires_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        card_name:
+          type: string
+          minLength: 1
+        family:
+          type: string
+          minLength: 1
+        rarity:
+          type: integer
+          minimum: 0
+          maximum: 100
+        price:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+    ShopOffersResponse:
+      type: object
+      required: [service, task, offers]
+      properties:
+        service:
+          type: string
+          enum: [economy-service]
+        task:
+          type: string
+          enum: [ST-502]
+        offers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopOfferResponse"
+    BuyShopOfferRequest:
+      type: object
+      required: [player_id, offer_id]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        offer_id:
+          type: string
+          format: uuid
+    EconomyPurchase:
+      type: object
+      required: [id, player_id, offer_id, card_id, price, purchased_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        offer_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        price:
+          type: integer
+          minimum: 1
+        purchased_at:
+          type: string
+          format: date-time
+    EconomyInventoryCard:
+      type: object
+      required: [id, player_id, card_id, source_offer_id, acquired_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        source_offer_id:
+          type: string
+          format: uuid
+        acquired_at:
+          type: string
+          format: date-time
+    BuyShopOfferResponse:
+      type: object
+      required:
+        [
+          service,
+          task,
+          player_id,
+          balance,
+          offer,
+          purchase,
+          inventory_card,
+          events,
+        ]
+      properties:
+        service:
+          type: string
+          enum: [economy-service]
+        task:
+          type: string
+          enum: [ST-502]
+        player_id:
+          type: string
+          format: uuid
+        balance:
+          type: integer
+          minimum: 0
+        offer:
+          $ref: "#/components/schemas/ShopOfferResponse"
+        purchase:
+          $ref: "#/components/schemas/EconomyPurchase"
+        inventory_card:
+          $ref: "#/components/schemas/EconomyInventoryCard"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EconomyEvent"
     EconomyWalletCredits:
       type: object
       required: [service, task, player_id, balance, ledger_entries]

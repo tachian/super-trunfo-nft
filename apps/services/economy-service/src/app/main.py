@@ -2,7 +2,10 @@ from super_trunfo_shared import InMemoryDomainEventPublisher
 from super_trunfo_shared.api import create_service_app
 
 from app.api.routes import create_economy_router
-from app.infrastructure.repositories import InMemoryWalletRepository
+from app.infrastructure.repositories import (
+    InMemoryShopOfferRepository,
+    InMemoryWalletRepository,
+)
 
 SERVICE_NAME = "economy-service"
 CONTEXT = "economy"
@@ -19,6 +22,7 @@ app = create_service_app(
     planned_routes=PLANNED_ROUTES,
 )
 app.state.wallet_repository = InMemoryWalletRepository()
+app.state.shop_offer_repository = InMemoryShopOfferRepository.with_default_offers()
 app.state.domain_event_publisher = InMemoryDomainEventPublisher(
     service_name=SERVICE_NAME,
     context=CONTEXT,
