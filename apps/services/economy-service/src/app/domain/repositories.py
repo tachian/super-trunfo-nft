@@ -13,6 +13,9 @@ class WalletRepository(Protocol):
     def find_by_player_id(self, player_id: UUID) -> Wallet | None:
         """Find a wallet by player id."""
 
+    def list_all(self) -> tuple[Wallet, ...]:
+        """List all wallets for telemetry and operational views."""
+
 
 class ShopOfferRepository(Protocol):
     def list_active(self) -> tuple[ShopOffer, ...]:

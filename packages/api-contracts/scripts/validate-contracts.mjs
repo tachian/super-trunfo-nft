@@ -133,6 +133,7 @@ const requiredEconomyContractFragments = [
   "operationId: applyMatchResultCredits",
   "operationId: listShopOffers",
   "operationId: buyShopOffer",
+  "operationId: getEconomicTelemetry",
   "EconomyWalletCredits:",
   "EconomyCreditLedgerEntry:",
   "ApplyMatchResultCreditsRequest:",
@@ -141,6 +142,10 @@ const requiredEconomyContractFragments = [
   "ShopOffersResponse:",
   "BuyShopOfferRequest:",
   "BuyShopOfferResponse:",
+  "EconomicTelemetryResponse:",
+  "EconomicCreditTelemetryResponse:",
+  "EconomicBalanceTelemetryResponse:",
+  "EconomicRiskTelemetryResponse:",
   "EconomyPurchase:",
   "EconomyInventoryCard:",
   "EconomyEvent:",
@@ -148,6 +153,8 @@ const requiredEconomyContractFragments = [
   "enum: [match_victory, match_defeat]",
   "enum: [ST-501]",
   "enum: [ST-502]",
+  "enum: [ST-505]",
+  "enum: [stable, watch, critical]",
   "enum: [economy-service]",
 ];
 
@@ -222,6 +229,9 @@ const requiredEconomyDomainFragments = [
   "Purchases must be atomic against wallet balance and inventory.",
   "Shop offers must have a positive price and explicit expiration.",
   "BuyShopOffer rejects expired offers and insufficient wallet credits.",
+  "Economic telemetry exposes aggregated metrics only, without player identifiers.",
+  "Win streak abuse signal starts at five consecutive victories.",
+  "Inflation status is derived from credit spend ratio and average wallet balance.",
 ];
 
 for (const fragment of requiredEconomyDomainFragments) {

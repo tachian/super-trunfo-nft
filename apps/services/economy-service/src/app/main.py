@@ -14,6 +14,7 @@ PLANNED_ROUTES = [
     {"method": "GET", "path": "/wallet/credits", "task": "ST-501"},
     {"method": "GET", "path": "/shop/offers", "task": "ST-502"},
     {"method": "POST", "path": "/shop/buy", "task": "ST-502"},
+    {"method": "GET", "path": "/economy/telemetry", "task": "ST-505"},
 ]
 
 app = create_service_app(

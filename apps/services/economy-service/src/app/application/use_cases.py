@@ -24,6 +24,10 @@ from app.domain.repositories import (
     ShopOfferRepository,
     WalletRepository,
 )
+from app.domain.telemetry import (
+    EconomicTelemetrySnapshot,
+    economic_telemetry_snapshot,
+)
 
 
 @dataclass(frozen=True)
@@ -64,6 +68,11 @@ class BuyShopOfferResult:
     purchase: Purchase
     inventory_card: InventoryCard
     events: tuple[DomainEvent, ...]
+
+
+@dataclass(frozen=True)
+class GetEconomicTelemetryResult:
+    snapshot: EconomicTelemetrySnapshot
 
 
 class ApplyMatchResultCredits:
@@ -161,4 +170,14 @@ class BuyShopOffer:
             purchase=purchase,
             inventory_card=inventory_card,
             events=(event,),
+        )
+
+
+class GetEconomicTelemetry:
+    def __init__(self, wallet_repository: WalletRepository) -> None:
+        self.wallet_repository = wallet_repository
+
+    def execute(self) -> GetEconomicTelemetryResult:
+        return GetEconomicTelemetryResult(
+            snapshot=economic_telemetry_snapshot(self.wallet_repository.list_all())
         )
