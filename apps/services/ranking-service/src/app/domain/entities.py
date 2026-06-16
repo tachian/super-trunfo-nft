@@ -74,6 +74,16 @@ def create_rating(player_id: UUID) -> Rating:
     return Rating(player_id=player_id, score=DEFAULT_RATING)
 
 
+@dataclass(frozen=True)
+class LeaderboardEntry:
+    position: int
+    rating: Rating
+
+    def __post_init__(self) -> None:
+        if self.position < 1:
+            raise RankingInvariantError("leaderboard position must be positive")
+
+
 def tier_for_score(score: int) -> RankingTier:
     if score < 0:
         raise RankingInvariantError("rating score cannot be negative")
@@ -135,3 +145,32 @@ def recalculate_elo_ratings(
 
 def expected_score(player_score: int, opponent_score: int) -> float:
     return 1 / (1 + 10 ** ((opponent_score - player_score) / 400))
+
+
+def leaderboard_entries(
+    ratings: tuple[Rating, ...],
+    *,
+    offset: int = 0,
+    limit: int | None = None,
+) -> tuple[LeaderboardEntry, ...]:
+    if offset < 0:
+        raise RankingInvariantError("leaderboard offset cannot be negative")
+
+    if limit is not None and limit < 1:
+        raise RankingInvariantError("leaderboard limit must be positive")
+
+    ordered_ratings = sorted(
+        ratings,
+        key=lambda rating: (
+            -rating.score,
+            -rating.wins,
+            rating.losses,
+            str(rating.player_id),
+        ),
+    )
+    window = ordered_ratings[offset : offset + limit if limit is not None else None]
+
+    return tuple(
+        LeaderboardEntry(position=offset + index + 1, rating=rating)
+        for index, rating in enumerate(window)
+    )

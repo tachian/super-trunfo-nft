@@ -148,6 +148,9 @@ contexts:
       - Default rating starts at 1000 points.
       - RecalculatePlayerRating uses simplified ELO with K-factor 32.
       - Rating recalculation is idempotent per match.
+      - Global leaderboard is ordered by score, wins, losses and player id.
+      - Leaderboard queries use cache keys scoped by repository version and pagination.
+      - Friends leaderboard returns an empty cached list when no friend ids are provided.
       - Bronze tier ranges from 0 to 999.
       - Silver tier ranges from 1000 to 1499.
       - Gold tier ranges from 1500 to 1999.

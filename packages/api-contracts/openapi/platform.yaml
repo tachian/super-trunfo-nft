@@ -298,17 +298,68 @@ paths:
   /ranking/global:
     get:
       summary: Global leaderboard
+      operationId: getGlobalRanking
       tags: [Ranking]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Cached global leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankingLeaderboardResponse"
   /ranking/friends:
     get:
       summary: Friends leaderboard
+      operationId: getFriendsRanking
       tags: [Ranking]
+      parameters:
+        - name: player_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: friend_ids
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
       responses:
-        "202":
-          description: Planned endpoint
+        "200":
+          description: Cached friends leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankingLeaderboardResponse"
   /ranking/recalculate:
     post:
       summary: Recalculate player ratings after a match
@@ -951,6 +1002,50 @@ components:
             - string
             - "null"
           format: date-time
+    LeaderboardEntryResponse:
+      allOf:
+        - $ref: "#/components/schemas/RankingRating"
+        - type: object
+          required: [position]
+          properties:
+            position:
+              type: integer
+              minimum: 1
+    RankingCache:
+      type: object
+      required: [hit]
+      properties:
+        hit:
+          type: boolean
+    RankingLeaderboardResponse:
+      type: object
+      required: [service, task, scope, total, limit, offset, entries, cache]
+      properties:
+        service:
+          type: string
+          enum: [ranking-service]
+        task:
+          type: string
+          enum: [ST-504]
+        scope:
+          type: string
+          enum: [global, friends]
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntryResponse"
+        cache:
+          $ref: "#/components/schemas/RankingCache"
     RankingEvent:
       type: object
       required: [name, aggregate_id, payload, occurred_at, event_id]

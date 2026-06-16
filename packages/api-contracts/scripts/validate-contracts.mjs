@@ -158,13 +158,20 @@ for (const fragment of requiredEconomyContractFragments) {
 }
 
 const requiredRankingContractFragments = [
+  "operationId: getGlobalRanking",
+  "operationId: getFriendsRanking",
   "operationId: recalculatePlayerRating",
+  "RankingLeaderboardResponse:",
+  "LeaderboardEntryResponse:",
+  "RankingCache:",
   "RecalculatePlayerRatingRequest:",
   "RecalculatePlayerRatingResponse:",
   "RankingRating:",
   "RankingEvent:",
   "enum: [bronze, silver, gold, platinum, diamond]",
   "enum: [ST-503]",
+  "enum: [ST-504]",
+  "enum: [global, friends]",
   "enum: [ranking-service]",
   "additionalProperties: false",
 ];
@@ -227,6 +234,9 @@ const requiredRankingDomainFragments = [
   "Default rating starts at 1000 points.",
   "RecalculatePlayerRating uses simplified ELO with K-factor 32.",
   "Rating recalculation is idempotent per match.",
+  "Global leaderboard is ordered by score, wins, losses and player id.",
+  "Leaderboard queries use cache keys scoped by repository version and pagination.",
+  "Friends leaderboard returns an empty cached list when no friend ids are provided.",
   "Bronze tier ranges from 0 to 999.",
   "Diamond tier starts at 2500.",
 ];
