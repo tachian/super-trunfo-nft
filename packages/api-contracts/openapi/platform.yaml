@@ -236,6 +236,45 @@ paths:
       responses:
         "202":
           description: Planned endpoint
+  /wallet/credits:
+    get:
+      summary: Get wallet credit balance
+      operationId: getWalletCredits
+      tags: [Economy]
+      parameters:
+        - name: player_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Wallet credit balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EconomyWalletCredits"
+        "404":
+          description: Wallet not found
+  /wallet/credits/match-result:
+    post:
+      summary: Apply credits from match result
+      operationId: applyMatchResultCredits
+      tags: [Economy]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyMatchResultCreditsRequest"
+      responses:
+        "201":
+          description: Credits applied from match result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplyMatchResultCreditsResponse"
   /ranking/global:
     get:
       summary: Global leaderboard
@@ -612,6 +651,97 @@ components:
         selected_attribute:
           type: string
           enum: [speed, strength, intelligence, resistance, rarity]
+    EconomyCreditLedgerEntry:
+      type: object
+      required: [id, player_id, match_id, amount, reason, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        match_id:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+          minimum: 0
+        reason:
+          type: string
+          enum: [match_victory, match_defeat]
+        created_at:
+          type: string
+          format: date-time
+    EconomyEvent:
+      type: object
+      required: [name, aggregate_id, payload, occurred_at, event_id]
+      properties:
+        name:
+          type: string
+          enum: [CreditsEarned]
+        aggregate_id:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
+        event_id:
+          type: string
+          format: uuid
+    EconomyWalletCredits:
+      type: object
+      required: [service, task, player_id, balance, ledger_entries]
+      properties:
+        service:
+          type: string
+          enum: [economy-service]
+        task:
+          type: string
+          enum: [ST-501]
+        player_id:
+          type: string
+          format: uuid
+        balance:
+          type: integer
+          minimum: 0
+        ledger_entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/EconomyCreditLedgerEntry"
+    ApplyMatchResultCreditsRequest:
+      type: object
+      required: [player_id, match_id, result]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        match_id:
+          type: string
+          format: uuid
+        result:
+          type: string
+          enum: [victory, defeat]
+    ApplyMatchResultCreditsResponse:
+      allOf:
+        - $ref: "#/components/schemas/EconomyWalletCredits"
+        - type: object
+          required: [created, awarded_credits, ledger_entry, events]
+          properties:
+            created:
+              type: boolean
+            awarded_credits:
+              type: integer
+              minimum: 0
+              maximum: 1
+            ledger_entry:
+              $ref: "#/components/schemas/EconomyCreditLedgerEntry"
+            events:
+              type: array
+              items:
+                $ref: "#/components/schemas/EconomyEvent"
     MatchmakingQueue:
       type: object
       required: [tier, name, size]
