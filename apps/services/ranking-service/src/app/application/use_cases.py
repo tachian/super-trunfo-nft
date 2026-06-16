@@ -131,32 +131,13 @@ class GetGlobalRanking:
             limit=query.limit,
             offset=query.offset,
         )
-        cached_entries = self.leaderboard_cache.get(cache_key)
 
-        if cached_entries is not None:
-            return RankingQueryResult(
-                entries=cached_entries,
-                total=len(ratings),
-                limit=query.limit,
-                offset=query.offset,
-                cache_key=cache_key,
-                cache_hit=True,
-            )
-
-        entries = leaderboard_entries(
-            ratings,
-            limit=query.limit,
-            offset=query.offset,
-        )
-        self.leaderboard_cache.set(cache_key, entries)
-
-        return RankingQueryResult(
-            entries=entries,
-            total=len(ratings),
-            limit=query.limit,
-            offset=query.offset,
+        return cached_leaderboard_result(
+            cache=self.leaderboard_cache,
+            ratings=ratings,
             cache_key=cache_key,
-            cache_hit=False,
+            limit=query.limit,
+            offset=query.offset,
         )
 
 
@@ -184,33 +165,47 @@ class GetFriendsRanking:
             player_id=query.player_id,
             friend_ids=tuple(sorted(friend_id_set)),
         )
-        cached_entries = self.leaderboard_cache.get(cache_key)
 
-        if cached_entries is not None:
-            return RankingQueryResult(
-                entries=cached_entries,
-                total=len(ratings),
-                limit=query.limit,
-                offset=query.offset,
-                cache_key=cache_key,
-                cache_hit=True,
-            )
-
-        entries = leaderboard_entries(
-            ratings,
-            limit=query.limit,
-            offset=query.offset,
-        )
-        self.leaderboard_cache.set(cache_key, entries)
-
-        return RankingQueryResult(
-            entries=entries,
-            total=len(ratings),
-            limit=query.limit,
-            offset=query.offset,
+        return cached_leaderboard_result(
+            cache=self.leaderboard_cache,
+            ratings=ratings,
             cache_key=cache_key,
-            cache_hit=False,
+            limit=query.limit,
+            offset=query.offset,
         )
+
+
+def cached_leaderboard_result(
+    *,
+    cache: LeaderboardCache,
+    ratings: tuple[Rating, ...],
+    cache_key: str,
+    limit: int,
+    offset: int,
+) -> RankingQueryResult:
+    cached_entries = cache.get(cache_key)
+
+    if cached_entries is not None:
+        return RankingQueryResult(
+            entries=cached_entries,
+            total=len(ratings),
+            limit=limit,
+            offset=offset,
+            cache_key=cache_key,
+            cache_hit=True,
+        )
+
+    entries = leaderboard_entries(ratings, limit=limit, offset=offset)
+    cache.set(cache_key, entries)
+
+    return RankingQueryResult(
+        entries=entries,
+        total=len(ratings),
+        limit=limit,
+        offset=offset,
+        cache_key=cache_key,
+        cache_hit=False,
+    )
 
 
 def ranking_cache_key(
