@@ -125,6 +125,8 @@ contexts:
       - Credit ledger prevents duplicate grants per player and match.
       - CreditsEarned is published only when a new positive credit entry is created.
       - Purchases must be atomic against wallet balance and inventory.
+      - Shop offers must have a positive price and explicit expiration.
+      - BuyShopOffer rejects expired offers and insufficient wallet credits.
   ranking:
     service: ranking-service
     aggregates:

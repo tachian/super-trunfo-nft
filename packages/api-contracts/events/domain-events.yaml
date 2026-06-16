@@ -145,6 +145,21 @@ events:
       balance: integer
       reason: string
       earned_at: datetime
+  - name: OfferPurchased
+    version: 1.0.0
+    producer: economy-service
+    consumers: [notification-service]
+    payload:
+      schema_version: string
+      player_id: uuid
+      offer_id: uuid
+      purchase_id: uuid
+      inventory_card_id: uuid
+      card_id: uuid
+      card_name: string
+      price: integer
+      balance: integer
+      purchased_at: datetime
   - name: CardExpired
     producer: card-service
     consumers: [economy-service, notification-service]
