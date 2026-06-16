@@ -1,16 +1,21 @@
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from super_trunfo_shared import DomainEvent
 
 from app.application.use_cases import (
+    GetFriendsRanking,
+    GetFriendsRankingQuery,
+    GetGlobalRanking,
+    GetGlobalRankingQuery,
     RecalculatePlayerRating,
     RecalculatePlayerRatingCommand,
 )
-from app.domain.entities import Rating
+from app.domain.entities import LeaderboardEntry, Rating
 from app.domain.exceptions import RankingInvariantError
 
 
@@ -30,6 +35,25 @@ class RatingResponse(BaseModel):
     wins: int
     losses: int
     updated_at: datetime | None
+
+
+class LeaderboardEntryResponse(RatingResponse):
+    position: int
+
+
+class RankingCacheResponse(BaseModel):
+    hit: bool
+
+
+class RankingLeaderboardResponse(BaseModel):
+    service: str
+    task: str
+    scope: str
+    total: int
+    limit: int
+    offset: int
+    entries: list[LeaderboardEntryResponse]
+    cache: RankingCacheResponse
 
 
 class RankingEventResponse(BaseModel):
@@ -53,13 +77,62 @@ class RecalculatePlayerRatingResponse(BaseModel):
 def create_ranking_router() -> APIRouter:
     router = APIRouter(tags=["ranking"])
 
-    @router.get("/ranking/global", status_code=status.HTTP_202_ACCEPTED)
-    async def global_ranking() -> dict[str, str]:
-        return {"service": "ranking-service", "status": "planned", "task": "ST-504"}
+    @router.get(
+        "/ranking/global",
+        operation_id="getGlobalRanking",
+        response_model=RankingLeaderboardResponse,
+    )
+    async def global_ranking(
+        request: Request,
+        limit: Annotated[int, Query(ge=1, le=100)] = 50,
+        offset: Annotated[int, Query(ge=0)] = 0,
+    ) -> RankingLeaderboardResponse:
+        result = GetGlobalRanking(
+            request.app.state.rating_repository,
+            request.app.state.leaderboard_cache,
+        ).execute(GetGlobalRankingQuery(limit=limit, offset=offset))
 
-    @router.get("/ranking/friends", status_code=status.HTTP_202_ACCEPTED)
-    async def friends_ranking() -> dict[str, str]:
-        return {"service": "ranking-service", "status": "planned", "task": "ST-504"}
+        return leaderboard_response(
+            scope="global",
+            entries=result.entries,
+            total=result.total,
+            limit=result.limit,
+            offset=result.offset,
+            cache_hit=result.cache_hit,
+        )
+
+    @router.get(
+        "/ranking/friends",
+        operation_id="getFriendsRanking",
+        response_model=RankingLeaderboardResponse,
+    )
+    async def friends_ranking(
+        request: Request,
+        player_id: Annotated[UUID, Query()],
+        friend_ids: Annotated[list[UUID] | None, Query()] = None,
+        limit: Annotated[int, Query(ge=1, le=100)] = 50,
+        offset: Annotated[int, Query(ge=0)] = 0,
+    ) -> RankingLeaderboardResponse:
+        result = GetFriendsRanking(
+            request.app.state.rating_repository,
+            request.app.state.leaderboard_cache,
+        ).execute(
+            GetFriendsRankingQuery(
+                player_id=player_id,
+                friend_ids=tuple(friend_ids or ()),
+                limit=limit,
+                offset=offset,
+            )
+        )
+
+        return leaderboard_response(
+            scope="friends",
+            entries=result.entries,
+            total=result.total,
+            limit=result.limit,
+            offset=result.offset,
+            cache_hit=result.cache_hit,
+        )
 
     @router.post(
         "/ranking/recalculate",
@@ -118,6 +191,33 @@ def rating_response(rating: Rating) -> RatingResponse:
         losses=rating.losses,
         updated_at=rating.updated_at,
     )
+
+
+def leaderboard_response(
+    *,
+    scope: str,
+    entries: tuple[LeaderboardEntry, ...],
+    total: int,
+    limit: int,
+    offset: int,
+    cache_hit: bool,
+) -> RankingLeaderboardResponse:
+    return RankingLeaderboardResponse(
+        service="ranking-service",
+        task="ST-504",
+        scope=scope,
+        total=total,
+        limit=limit,
+        offset=offset,
+        entries=[leaderboard_entry_response(entry) for entry in entries],
+        cache=RankingCacheResponse(hit=cache_hit),
+    )
+
+
+def leaderboard_entry_response(entry: LeaderboardEntry) -> LeaderboardEntryResponse:
+    rating_payload = rating_response(entry.rating).model_dump()
+
+    return LeaderboardEntryResponse(position=entry.position, **rating_payload)
 
 
 def ranking_event_responses(

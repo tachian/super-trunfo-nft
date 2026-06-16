@@ -2,7 +2,7 @@ from super_trunfo_shared import InMemoryDomainEventPublisher
 from super_trunfo_shared.api import create_service_app
 
 from app.api.routes import create_ranking_router
-from app.infrastructure.repositories import InMemoryRatingRepository
+from app.infrastructure.repositories import InMemoryLeaderboardCache, InMemoryRatingRepository
 
 SERVICE_NAME = "ranking-service"
 CONTEXT = "ranking"
@@ -18,6 +18,7 @@ app = create_service_app(
     planned_routes=PLANNED_ROUTES,
 )
 app.state.rating_repository = InMemoryRatingRepository()
+app.state.leaderboard_cache = InMemoryLeaderboardCache()
 app.state.domain_event_publisher = InMemoryDomainEventPublisher(
     service_name=SERVICE_NAME,
     context=CONTEXT,

@@ -1,10 +1,13 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
 from app.domain.entities import (
     RankingTier,
+    Rating,
     create_rating,
     expected_score,
+    leaderboard_entries,
     recalculate_elo_ratings,
     tier_for_score,
 )
@@ -75,3 +78,40 @@ def test_tier_for_score_uses_mvp_ranges() -> None:
 
 def test_expected_score_is_balanced_for_equal_ratings() -> None:
     assert expected_score(1000, 1000) == 0.5
+
+
+def test_leaderboard_entries_order_by_score_and_position() -> None:
+    ratings = (
+        rating(UUID("44444444-4444-4444-8444-000000000503"), score=1200, wins=2),
+        rating(UUID("55555555-5555-4555-8555-000000000503"), score=1300, wins=1),
+        rating(UUID("66666666-6666-4666-8666-000000000503"), score=1200, wins=3),
+    )
+
+    entries = leaderboard_entries(ratings)
+
+    assert [entry.position for entry in entries] == [1, 2, 3]
+    assert [entry.rating.score for entry in entries] == [1300, 1200, 1200]
+    assert entries[1].rating.wins == 3
+
+
+def test_leaderboard_entries_support_offset_and_limit() -> None:
+    ratings = (
+        rating(UUID("44444444-4444-4444-8444-000000000503"), score=1200),
+        rating(UUID("55555555-5555-4555-8555-000000000503"), score=1300),
+        rating(UUID("66666666-6666-4666-8666-000000000503"), score=1100),
+    )
+
+    entries = leaderboard_entries(ratings, offset=1, limit=1)
+
+    assert len(entries) == 1
+    assert entries[0].position == 2
+    assert entries[0].rating.score == 1200
+
+
+def rating(player_id: UUID, *, score: int, wins: int = 0) -> Rating:
+    return Rating(
+        player_id=player_id,
+        score=score,
+        wins=wins,
+        updated_at=datetime(2026, 6, 16, tzinfo=UTC),
+    )
