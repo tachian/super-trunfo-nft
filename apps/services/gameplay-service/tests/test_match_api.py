@@ -268,7 +268,7 @@ async def test_match_api_flow_get_play_get_and_replay() -> None:
 
 
 def test_gameplay_routes_include_realtime_websocket() -> None:
-    assert realtime_websocket_endpoint(app.routes) is not None
+    assert realtime_websocket_endpoint(create_gameplay_router().routes) is not None
 
 
 @pytest.mark.anyio
