@@ -241,10 +241,10 @@ def create_economy_router() -> APIRouter:
                 status_code=status.HTTP_409_CONFLICT,
                 content={"detail": "Insufficient credits."},
             )
-        except EconomyInvariantError as exc:
+        except EconomyInvariantError:
             return JSONResponse(
                 status_code=status.HTTP_409_CONFLICT,
-                content={"detail": str(exc)},
+                content={"detail": "Request could not be processed."},
             )
 
         return BuyShopOfferResponse(
