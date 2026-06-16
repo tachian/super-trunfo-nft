@@ -17,6 +17,10 @@ class InMemoryWalletRepository:
     def find_by_player_id(self, player_id: UUID) -> Wallet | None:
         return self._wallets_by_player_id.get(player_id)
 
+    def list_all(self) -> tuple[Wallet, ...]:
+        with self._lock:
+            return tuple(self._wallets_by_player_id.values())
+
     def clear(self) -> None:
         with self._lock:
             self._wallets_by_player_id.clear()

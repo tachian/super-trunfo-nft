@@ -11,6 +11,7 @@ from app.application.use_cases import (
     ApplyMatchResultCredits,
     BuyShopOffer,
     BuyShopOfferCommand,
+    GetEconomicTelemetry,
     GetWalletCredits,
     GetWalletCreditsQuery,
     ListShopOffers,
@@ -30,6 +31,7 @@ from app.domain.exceptions import (
     ShopOfferNotFoundError,
     WalletNotFoundError,
 )
+from app.domain.telemetry import EconomicTelemetrySnapshot
 
 
 class ApplyMatchResultCreditsRequest(BaseModel):
@@ -117,6 +119,33 @@ class BuyShopOfferResponse(BaseModel):
     purchase: PurchaseResponse
     inventory_card: InventoryCardResponse
     events: list[EconomyEventResponse]
+
+
+class EconomicCreditTelemetryResponse(BaseModel):
+    total_credits_earned: int
+    total_credits_spent: int
+    total_purchases: int
+
+
+class EconomicBalanceTelemetryResponse(BaseModel):
+    wallet_count: int
+    average_balance: float
+    max_balance: int
+    economy_supply: int
+
+
+class EconomicRiskTelemetryResponse(BaseModel):
+    highest_win_streak: int
+    abuse_signal_count: int
+    inflation_status: str
+
+
+class EconomicTelemetryResponse(BaseModel):
+    service: str
+    task: str
+    credits: EconomicCreditTelemetryResponse
+    balances: EconomicBalanceTelemetryResponse
+    risk: EconomicRiskTelemetryResponse
 
 
 def create_economy_router() -> APIRouter:
@@ -267,6 +296,16 @@ def create_economy_router() -> APIRouter:
             ],
         )
 
+    @router.get(
+        "/economy/telemetry",
+        operation_id="getEconomicTelemetry",
+        response_model=EconomicTelemetryResponse,
+    )
+    async def economic_telemetry(request: Request) -> EconomicTelemetryResponse:
+        result = GetEconomicTelemetry(request.app.state.wallet_repository).execute()
+
+        return economic_telemetry_response(result.snapshot)
+
     return router
 
 
@@ -321,4 +360,29 @@ def inventory_card_response(inventory_card: InventoryCard) -> InventoryCardRespo
         card_id=str(inventory_card.card_id),
         source_offer_id=str(inventory_card.source_offer_id),
         acquired_at=inventory_card.acquired_at,
+    )
+
+
+def economic_telemetry_response(
+    snapshot: EconomicTelemetrySnapshot,
+) -> EconomicTelemetryResponse:
+    return EconomicTelemetryResponse(
+        service="economy-service",
+        task="ST-505",
+        credits=EconomicCreditTelemetryResponse(
+            total_credits_earned=snapshot.total_credits_earned,
+            total_credits_spent=snapshot.total_credits_spent,
+            total_purchases=snapshot.total_purchases,
+        ),
+        balances=EconomicBalanceTelemetryResponse(
+            wallet_count=snapshot.wallet_count,
+            average_balance=snapshot.average_balance,
+            max_balance=snapshot.max_balance,
+            economy_supply=snapshot.economy_supply,
+        ),
+        risk=EconomicRiskTelemetryResponse(
+            highest_win_streak=snapshot.highest_win_streak,
+            abuse_signal_count=snapshot.abuse_signal_count,
+            inflation_status=snapshot.inflation_status,
+        ),
     )

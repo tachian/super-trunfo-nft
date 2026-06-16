@@ -256,6 +256,18 @@ paths:
           description: Wallet or shop offer not found
         "409":
           description: Shop offer cannot be purchased
+  /economy/telemetry:
+    get:
+      summary: Get economic telemetry metrics
+      operationId: getEconomicTelemetry
+      tags: [Economy]
+      responses:
+        "200":
+          description: Aggregated economy telemetry for operators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EconomicTelemetryResponse"
   /wallet/credits:
     get:
       summary: Get wallet credit balance
@@ -909,6 +921,64 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EconomyEvent"
+    EconomicTelemetryResponse:
+      type: object
+      required: [service, task, credits, balances, risk]
+      properties:
+        service:
+          type: string
+          enum: [economy-service]
+        task:
+          type: string
+          enum: [ST-505]
+        credits:
+          $ref: "#/components/schemas/EconomicCreditTelemetryResponse"
+        balances:
+          $ref: "#/components/schemas/EconomicBalanceTelemetryResponse"
+        risk:
+          $ref: "#/components/schemas/EconomicRiskTelemetryResponse"
+    EconomicCreditTelemetryResponse:
+      type: object
+      required: [total_credits_earned, total_credits_spent, total_purchases]
+      properties:
+        total_credits_earned:
+          type: integer
+          minimum: 0
+        total_credits_spent:
+          type: integer
+          minimum: 0
+        total_purchases:
+          type: integer
+          minimum: 0
+    EconomicBalanceTelemetryResponse:
+      type: object
+      required: [wallet_count, average_balance, max_balance, economy_supply]
+      properties:
+        wallet_count:
+          type: integer
+          minimum: 0
+        average_balance:
+          type: number
+          minimum: 0
+        max_balance:
+          type: integer
+          minimum: 0
+        economy_supply:
+          type: integer
+          minimum: 0
+    EconomicRiskTelemetryResponse:
+      type: object
+      required: [highest_win_streak, abuse_signal_count, inflation_status]
+      properties:
+        highest_win_streak:
+          type: integer
+          minimum: 0
+        abuse_signal_count:
+          type: integer
+          minimum: 0
+        inflation_status:
+          type: string
+          enum: [stable, watch, critical]
     EconomyWalletCredits:
       type: object
       required: [service, task, player_id, balance, ledger_entries]

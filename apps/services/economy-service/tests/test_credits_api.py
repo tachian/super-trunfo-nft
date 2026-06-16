@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest
-from app.domain.entities import ShopOffer
+from app.domain.entities import MatchResult, ShopOffer, create_wallet
 from app.infrastructure.repositories import InMemoryShopOfferRepository
 from app.main import app
 from httpx import ASGITransport, AsyncClient
@@ -11,6 +11,7 @@ PLAYER_ID = UUID("11111111-1111-4111-8111-000000000501")
 MATCH_ID = UUID("22222222-2222-4222-8222-000000000501")
 SHOP_OFFER_ID = UUID("11111111-5020-4502-8502-000000000001")
 EXPENSIVE_SHOP_OFFER_ID = UUID("11111111-5020-4502-8502-000000000002")
+SECOND_PLAYER_ID = UUID("33333333-3333-4333-8333-000000000505")
 
 
 @pytest.fixture(autouse=True)
@@ -252,3 +253,55 @@ def test_economy_openapi_exposes_st502_operations() -> None:
     assert "BuyShopOfferRequest" in openapi["components"]["schemas"]
     assert "BuyShopOfferResponse" in openapi["components"]["schemas"]
     assert "ShopOfferResponse" in openapi["components"]["schemas"]
+
+
+@pytest.mark.anyio
+async def test_get_economic_telemetry_returns_aggregate_metrics() -> None:
+    wallet = create_wallet(PLAYER_ID)
+    second_wallet = create_wallet(SECOND_PLAYER_ID)
+
+    for index in range(1, 6):
+        wallet, _, _ = wallet.apply_match_result(
+            match_id=UUID(f"44444444-4444-4444-8444-{index:012d}"),
+            result=MatchResult.VICTORY,
+        )
+
+    second_wallet, _, _ = second_wallet.apply_match_result(
+        match_id=UUID("55555555-5555-4555-8555-000000000001"),
+        result=MatchResult.VICTORY,
+    )
+    second_wallet, _, _ = second_wallet.buy_offer(
+        offer=app.state.shop_offer_repository.find_by_id(SHOP_OFFER_ID)
+    )
+    app.state.wallet_repository.save(wallet)
+    app.state.wallet_repository.save(second_wallet)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.get("/economy/telemetry")
+
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["task"] == "ST-505"
+    assert payload["balances"]["wallet_count"] == 2
+    assert payload["credits"]["total_credits_earned"] == 6
+    assert payload["credits"]["total_credits_spent"] == 1
+    assert payload["credits"]["total_purchases"] == 1
+    assert payload["risk"]["highest_win_streak"] == 5
+    assert payload["risk"]["abuse_signal_count"] == 1
+    assert payload["risk"]["inflation_status"] == "critical"
+    assert "player_id" not in payload
+
+
+def test_economy_openapi_exposes_st505_operations() -> None:
+    openapi = app.openapi()
+
+    assert (
+        openapi["paths"]["/economy/telemetry"]["get"]["operationId"]
+        == "getEconomicTelemetry"
+    )
+    assert "EconomicTelemetryResponse" in openapi["components"]["schemas"]
+    assert "EconomicRiskTelemetryResponse" in openapi["components"]["schemas"]
