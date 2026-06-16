@@ -93,7 +93,7 @@ async def test_recalculate_ranking_rejects_same_winner_and_loser() -> None:
         )
 
     assert response.status_code == 400
-    assert "different players" in response.json()["detail"]
+    assert response.json()["detail"] == "winner and loser must be different players"
 
 
 def test_ranking_openapi_exposes_st503_operations() -> None:

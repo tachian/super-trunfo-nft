@@ -72,6 +72,12 @@ def create_ranking_router() -> APIRouter:
         payload: RecalculatePlayerRatingRequest,
         request: Request,
     ) -> RecalculatePlayerRatingResponse | JSONResponse:
+        if payload.winner_id == payload.loser_id:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": "winner and loser must be different players"},
+            )
+
         try:
             result = RecalculatePlayerRating(
                 request.app.state.rating_repository,
