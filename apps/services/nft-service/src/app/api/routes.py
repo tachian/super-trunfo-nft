@@ -177,10 +177,10 @@ def create_nft_router() -> APIRouter:
                     expires_at=payload.expires_at,
                 )
             )
-        except NftInvariantError as exc:
+        except NftInvariantError as _exc:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={"detail": str(exc)},
+                content={"detail": "Invalid marketplace listing."},
             )
 
         return marketplace_listing_response(result.listing)
