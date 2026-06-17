@@ -2,6 +2,8 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest
+from super_trunfo_shared import InMemoryDomainEventPublisher
+
 from app.application.use_cases import (
     CreateMarketplaceListing,
     CreateMarketplaceListingCommand,
@@ -13,7 +15,6 @@ from app.domain.entities import (
 )
 from app.domain.exceptions import NftInvariantError
 from app.infrastructure.repositories import InMemoryMarketplaceListingRepository
-from super_trunfo_shared import InMemoryDomainEventPublisher
 
 
 SELLER_ID = UUID("11111111-7030-4703-8703-000000000001")

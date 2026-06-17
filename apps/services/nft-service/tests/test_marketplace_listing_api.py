@@ -1,8 +1,9 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from app.main import app
 from httpx import ASGITransport, AsyncClient
+
+from app.main import app
 
 
 SELLER_ID = "11111111-7030-4703-8703-000000000001"
@@ -69,7 +70,7 @@ async def test_create_marketplace_listing_rejects_expired_payload() -> None:
         )
 
     assert response.status_code == 400
-    assert "expiration must be after creation" in response.json()["detail"]
+    assert response.json()["detail"] == "Invalid marketplace listing."
 
 
 @pytest.mark.anyio
