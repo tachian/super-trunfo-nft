@@ -5,6 +5,14 @@ import { fileURLToPath } from "node:url";
 const requiredFiles = [
   "app/page.tsx",
   "app/layout.tsx",
+  "app/components/app-shell.tsx",
+  "app/components/sample-data.ts",
+  "app/login/page.tsx",
+  "app/colecao/page.tsx",
+  "app/deck/page.tsx",
+  "app/partida/page.tsx",
+  "app/loja/page.tsx",
+  "app/ranking/page.tsx",
   "public/card-back.svg",
 ];
 const appRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -16,18 +24,33 @@ for (const file of requiredFiles) {
 }
 
 const pageSource = readFileSync(join(appRoot, "app/page.tsx"), "utf8");
+const shellSource = readFileSync(
+  join(appRoot, "app/components/app-shell.tsx"),
+  "utf8",
+);
+const loginSource = readFileSync(join(appRoot, "app/login/page.tsx"), "utf8");
 const requiredFragments = [
+  'redirect("/login")',
+  "Super Trunfo NFT",
+  "/colecao",
+  "/deck",
+  "/partida",
+  "/loja",
+  "/ranking",
   "SESSION_TOKEN_KEY",
   "/auth/login",
   "/auth/register",
-  "/players/me",
   "window.sessionStorage.removeItem",
-  "onboarding.initial_deck",
+  "window.sessionStorage.setItem",
 ];
 
 for (const fragment of requiredFragments) {
-  if (!pageSource.includes(fragment)) {
-    throw new Error(`Missing web auth flow fragment: ${fragment}`);
+  if (
+    !pageSource.includes(fragment) &&
+    !shellSource.includes(fragment) &&
+    !loginSource.includes(fragment)
+  ) {
+    throw new Error(`Missing web shell fragment: ${fragment}`);
   }
 }
 

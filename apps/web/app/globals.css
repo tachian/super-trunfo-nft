@@ -10,6 +10,7 @@
   --warm: #f2a541;
   --danger: #bf4e30;
   --success: #237a57;
+  --violet: #6554c0;
   --shadow: 0 12px 34px rgb(29 36 51 / 10%);
 }
 
@@ -45,60 +46,6 @@ button {
   min-width: 0;
 }
 
-.app-shell {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  min-height: 100vh;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  border-right: 1px solid var(--line);
-  background: #fbfcfe;
-  padding: 24px;
-}
-
-.sidebar nav {
-  display: grid;
-  gap: 8px;
-}
-
-.sidebar a {
-  border-radius: 8px;
-  color: var(--muted);
-  padding: 10px 12px;
-}
-
-.sidebar a:hover,
-.sidebar a:focus-visible {
-  background: #e8f3f5;
-  color: var(--accent-strong);
-  outline: none;
-}
-
-.workspace {
-  display: grid;
-  gap: 24px;
-  padding: 28px;
-}
-
-.topbar {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.eyebrow {
-  color: var(--accent-strong);
-  font-size: 0.75rem;
-  font-weight: 700;
-  margin: 0 0 6px;
-  text-transform: uppercase;
-}
-
 h1,
 h2,
 p {
@@ -112,12 +59,147 @@ h2 {
 }
 
 h1 {
-  font-size: 3rem;
-  line-height: 1;
+  font-size: 2.25rem;
+  line-height: 1.05;
 }
 
 h2 {
   font-size: 1.25rem;
+}
+
+dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 4px 0 0;
+}
+
+.app-frame {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  align-content: start;
+  background: #fbfcfe;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 28px;
+  padding: 22px;
+}
+
+.brand {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  min-height: 72px;
+}
+
+.brand span {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.main-nav {
+  display: grid;
+  gap: 7px;
+}
+
+.main-nav a,
+.sidebar-status {
+  align-items: center;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 22px minmax(0, 1fr);
+}
+
+.main-nav a {
+  color: var(--muted);
+  min-height: 42px;
+  padding: 0 11px;
+}
+
+.main-nav a:hover,
+.main-nav a:focus-visible,
+.main-nav a.active {
+  background: #e8f3f5;
+  color: var(--accent-strong);
+  outline: none;
+}
+
+.sidebar-status {
+  background: #fff8ec;
+  border: 1px solid #f5d49b;
+  margin-top: auto;
+  min-height: 68px;
+  padding: 12px;
+}
+
+.sidebar-status span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.82rem;
+}
+
+.sidebar-status strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.logout-action {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.logout-action:hover,
+.logout-action:focus-visible {
+  background: #fff1ed;
+  color: var(--danger);
+  outline: none;
+}
+
+.workspace {
+  display: grid;
+  gap: 24px;
+  padding: 28px;
+}
+
+.page-heading {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.eyebrow {
+  color: var(--accent-strong);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  text-transform: uppercase;
 }
 
 .primary-action,
@@ -159,37 +241,86 @@ h2 {
   background: #e8f3f5;
 }
 
-.auth-layout {
-  align-items: start;
+.login-page {
+  align-items: stretch;
   display: grid;
-  gap: 20px;
-  grid-template-columns: minmax(280px, 420px) minmax(280px, 1fr);
+  grid-template-columns: minmax(300px, 0.9fr) minmax(320px, 1.1fr);
+  min-height: 100vh;
 }
 
-.auth-panel,
-.session-panel,
-.metric,
-.match-panel {
+.login-visual {
+  align-content: center;
+  background:
+    linear-gradient(135deg, rgb(23 126 137 / 13%), rgb(242 165 65 / 15%)),
+    #f8fbfd;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 26px;
+  padding: 44px;
+}
+
+.card-stack {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  min-height: 118px;
+}
+
+.mini-card {
+  aspect-ratio: 72 / 100;
+  border: 1px solid rgb(29 36 51 / 20%);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: block;
+}
+
+.mini-card.rare {
+  background:
+    linear-gradient(150deg, rgb(23 126 137 / 80%), rgb(255 255 255 / 0%)),
+    #ffffff;
+  transform: rotate(-8deg);
+}
+
+.mini-card.epic {
+  background:
+    linear-gradient(150deg, rgb(101 84 192 / 80%), rgb(255 255 255 / 0%)),
+    #ffffff;
+  transform: translateY(10px);
+}
+
+.mini-card.legendary {
+  background:
+    linear-gradient(150deg, rgb(242 165 65 / 88%), rgb(255 255 255 / 0%)),
+    #ffffff;
+  transform: rotate(8deg);
+}
+
+.login-panel {
+  align-content: center;
+  display: grid;
+  gap: 14px;
+  padding: 44px;
+}
+
+.auth-form {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
-}
-
-.auth-panel {
   box-shadow: var(--shadow);
   display: grid;
   gap: 16px;
+  max-width: 430px;
   padding: 22px;
+  width: 100%;
 }
 
-.auth-panel label {
+.auth-form label {
   color: var(--muted);
   display: grid;
   font-size: 0.9rem;
   gap: 7px;
 }
 
-.auth-panel input {
+.auth-form input {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -199,7 +330,7 @@ h2 {
   width: 100%;
 }
 
-.auth-panel input:focus {
+.auth-form input:focus {
   border-color: var(--accent);
   outline: 3px solid #d2ecef;
 }
@@ -238,218 +369,284 @@ h2 {
   padding: 10px 12px;
 }
 
-.session-panel {
+.session-state {
   align-items: center;
-  display: flex;
-  gap: 16px;
-  min-height: 164px;
-  padding: 24px;
-}
-
-.session-panel svg {
-  color: var(--success);
-  flex: 0 0 auto;
-}
-
-.metrics {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.metric {
-  align-items: center;
-  display: grid;
-  gap: 4px;
-  grid-template-columns: auto 1fr;
-  min-height: 96px;
-  padding: 16px;
-}
-
-.metric svg {
-  color: var(--warm);
-  grid-row: span 2;
-}
-
-.metric span {
   color: var(--muted);
-  font-size: 0.85rem;
+  display: flex;
+  gap: 9px;
 }
 
-.metric strong {
-  font-size: 1.25rem;
-  overflow-wrap: anywhere;
-}
-
-.profile-band {
-  align-items: center;
-  background: #eef8f6;
-  border-block: 1px solid #cfe7e0;
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(180px, 1fr) minmax(360px, 2fr) auto;
-  margin-inline: -28px;
-  padding: 20px 28px;
-}
-
-.profile-band dl,
-.match-stats {
+.login-stats,
+.stat-grid,
+.card-attributes,
+.compact-attributes,
+.score-line,
+.offer-tile dl,
+.leader-row dl {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
 }
 
-.profile-band dt,
-.match-stats dt {
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.login-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 520px;
 }
 
-.profile-band dd,
-.match-stats dd {
-  margin: 4px 0 0;
+.login-stats dd {
+  font-weight: 800;
+}
+
+.stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stat-tile,
+.card-tile,
+.deck-slot,
+.battle-card,
+.round-panel,
+.offer-tile,
+.leader-row {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.stat-tile {
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  padding: 16px;
+}
+
+.stat-tile span,
+.card-tile span,
+.deck-slot span,
+.leader-row span,
+.offer-tile span {
+  color: var(--muted);
+}
+
+.stat-tile strong {
+  font-size: 1.35rem;
   overflow-wrap: anywhere;
 }
 
-.board {
+.cards-grid,
+.deck-builder,
+.offer-grid,
+.leaderboard {
   display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(280px, 0.78fr) minmax(320px, 1.22fr);
-}
-
-.match-panel {
-  padding: 20px;
-}
-
-.queue-meter {
-  background: #e9edf3;
-  border-radius: 999px;
-  height: 12px;
-  margin: 24px 0 18px;
-  overflow: hidden;
-}
-
-.queue-meter span {
-  background: linear-gradient(90deg, var(--accent), var(--warm), var(--danger));
-  display: block;
-  height: 100%;
-}
-
-.deck-panel {
-  min-width: 0;
-}
-
-.section-heading {
-  margin-bottom: 16px;
+  gap: 14px;
 }
 
 .cards-grid {
-  display: grid;
-  gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.collection-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .card-tile {
   align-items: center;
-  background: #f9fbfd;
-  border: 1px solid var(--line);
-  border-radius: 8px;
   display: grid;
   gap: 12px;
-  grid-template-columns: 54px minmax(0, 1fr);
-  min-height: 104px;
-  padding: 10px;
+  grid-template-columns: 72px minmax(0, 1fr);
+  min-height: 126px;
+  padding: 12px;
 }
 
-.card-tile div {
+.card-body {
   display: grid;
-  gap: 4px;
+  gap: 12px;
   min-width: 0;
 }
 
 .card-tile strong,
 .card-tile span,
-.card-tile small {
+.card-tile dd,
+.deck-slot strong,
+.deck-slot span,
+.leader-row strong,
+.offer-tile strong {
   overflow-wrap: anywhere;
 }
 
-.card-tile span,
-.card-tile small {
-  color: var(--muted);
+.card-attributes {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.deck-builder {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.deck-slot {
+  align-content: start;
+  display: grid;
+  gap: 12px;
+  min-height: 258px;
+  padding: 14px;
+}
+
+.compact-attributes {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.match-board {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(320px, 1.2fr);
+}
+
+.battle-card {
+  align-items: center;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 120px minmax(0, 1fr);
+  min-height: 260px;
+  padding: 20px;
+}
+
+.battle-attributes {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 18px 0 0;
+}
+
+.battle-attributes dd {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.round-panel {
+  align-content: center;
+  display: grid;
+  gap: 22px;
+  min-height: 260px;
+  padding: 22px;
+}
+
+.score-line {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.score-line dd {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.offer-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.offer-tile {
+  display: grid;
+  gap: 18px;
+  min-height: 214px;
+  padding: 18px;
+}
+
+.offer-tile dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.leader-row {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 42px minmax(0, 1fr) minmax(220px, 0.8fr);
+  min-height: 76px;
+  padding: 12px 16px;
+}
+
+.leader-position {
+  align-items: center;
+  background: #eef8f6;
+  border-radius: 8px;
+  color: var(--accent-strong);
+  display: inline-flex;
+  font-weight: 800;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.leader-row dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (max-width: 1120px) {
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .profile-band,
-  .board,
-  .auth-layout {
+  .collection-grid,
+  .deck-builder,
+  .offer-grid,
+  .match-board {
     grid-template-columns: 1fr;
-  }
-
-  .profile-band {
-    align-items: start;
-  }
-
-  .cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 860px) {
-  .app-shell {
+  .app-frame,
+  .login-page {
     grid-template-columns: 1fr;
   }
 
   .sidebar {
-    align-items: center;
     border-bottom: 1px solid var(--line);
     border-right: 0;
-    flex-direction: row;
-    justify-content: space-between;
   }
 
-  .sidebar nav {
-    display: flex;
-    flex-wrap: wrap;
+  .main-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .topbar {
+  .sidebar-status {
+    margin-top: 0;
+  }
+
+  .page-heading {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  h1 {
-    font-size: 2.25rem;
+  .login-visual {
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+    min-height: 420px;
   }
 }
 
 @media (max-width: 620px) {
-  .workspace {
+  .workspace,
+  .login-panel,
+  .login-visual {
     padding: 20px;
   }
 
-  .sidebar {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 20px;
-  }
-
-  .metrics,
+  .main-nav,
+  .login-stats,
+  .stat-grid,
   .cards-grid,
-  .profile-band dl,
-  .match-stats {
+  .card-attributes,
+  .deck-builder,
+  .compact-attributes,
+  .score-line,
+  .offer-grid,
+  .leader-row,
+  .leader-row dl {
     grid-template-columns: 1fr;
   }
 
-  .profile-band {
-    margin-inline: -20px;
-    padding: 18px 20px;
+  .card-tile,
+  .battle-card {
+    grid-template-columns: 1fr;
+  }
+
+  .leader-position {
+    height: 36px;
+    width: 36px;
   }
 
   .primary-action,
