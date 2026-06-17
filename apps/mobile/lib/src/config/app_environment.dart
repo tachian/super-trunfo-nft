@@ -55,6 +55,8 @@ class AppEnvironment {
     required AppEnvironmentName name,
     required Uri apiBaseUrl,
   }) {
+    _validateBaseUrl(name, apiBaseUrl);
+
     return AppEnvironment(
       name: name,
       apiBaseUrl: apiBaseUrl,
@@ -70,7 +72,7 @@ class AppEnvironment {
   static AppEnvironment testing() {
     return AppEnvironment.fromBaseUrl(
       name: AppEnvironmentName.local,
-      apiBaseUrl: Uri.parse('http://127.0.0.1:8001'),
+      apiBaseUrl: Uri.https('127.0.0.1:8001'),
     );
   }
 }
@@ -85,10 +87,24 @@ AppEnvironmentName _parseName(String value) {
 
 Uri _defaultBaseUrl(AppEnvironmentName name) {
   return switch (name) {
-    AppEnvironmentName.local => Uri.parse('http://10.0.2.2:8001'),
+    AppEnvironmentName.local => Uri.https('localhost:8001'),
     AppEnvironmentName.staging => Uri.parse('https://staging.super-trunfo.app'),
     AppEnvironmentName.production => Uri.parse('https://super-trunfo.app'),
   };
+}
+
+void _validateBaseUrl(AppEnvironmentName name, Uri apiBaseUrl) {
+  if (name == AppEnvironmentName.local) {
+    return;
+  }
+
+  if (apiBaseUrl.scheme != 'https') {
+    throw ArgumentError.value(
+      apiBaseUrl.toString(),
+      'apiBaseUrl',
+      'Remote mobile environments require HTTPS.',
+    );
+  }
 }
 
 Uri _serviceBaseUrl(AppEnvironmentName name, Uri apiBaseUrl, int localPort) {

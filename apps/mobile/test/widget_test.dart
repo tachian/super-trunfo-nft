@@ -13,7 +13,7 @@ void main() {
     expect(find.text('Super Trunfo NFT'), findsOneWidget);
     expect(find.text('Login'), findsWidgets);
     expect(find.text('Local'), findsOneWidget);
-    expect(find.text('http://127.0.0.1:8001'), findsOneWidget);
+    expect(find.text('https://127.0.0.1:8001'), findsOneWidget);
   });
 
   testWidgets('navigates through MVP routes', (tester) async {

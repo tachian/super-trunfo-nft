@@ -88,8 +88,12 @@ docker compose -f infra/docker/compose.yaml up --build
 ```bash
 cd apps/mobile
 flutter pub get
-flutter run --dart-define=SUPER_TRUNFO_ENV=local
+flutter run \
+  --dart-define=SUPER_TRUNFO_ENV=local \
+  --dart-define=SUPER_TRUNFO_API_BASE_URL=http://10.0.2.2:8001
 ```
+
+O uso de HTTP deve ficar restrito ao ambiente `local`, para acesso ao backend no emulador Android.
 
 Para apontar para outro ambiente:
 
