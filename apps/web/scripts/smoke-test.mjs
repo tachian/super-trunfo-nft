@@ -6,6 +6,7 @@ const requiredFiles = [
   "app/page.tsx",
   "app/layout.tsx",
   "app/components/app-shell.tsx",
+  "app/components/collection-deck-manager.tsx",
   "app/components/sample-data.ts",
   "app/login/page.tsx",
   "app/colecao/page.tsx",
@@ -28,6 +29,10 @@ const shellSource = readFileSync(
   join(appRoot, "app/components/app-shell.tsx"),
   "utf8",
 );
+const collectionDeckSource = readFileSync(
+  join(appRoot, "app/components/collection-deck-manager.tsx"),
+  "utf8",
+);
 const loginSource = readFileSync(join(appRoot, "app/login/page.tsx"), "utf8");
 const requiredFragments = [
   'redirect("/login")',
@@ -37,6 +42,10 @@ const requiredFragments = [
   "/partida",
   "/loja",
   "/ranking",
+  "rarityFilter",
+  "familyFilter",
+  "selectedCardIds.length >= 10",
+  "Carta expirada nao pode entrar no deck.",
   "SESSION_TOKEN_KEY",
   "/auth/login",
   "/auth/register",
@@ -48,6 +57,7 @@ for (const fragment of requiredFragments) {
   if (
     !pageSource.includes(fragment) &&
     !shellSource.includes(fragment) &&
+    !collectionDeckSource.includes(fragment) &&
     !loginSource.includes(fragment)
   ) {
     throw new Error(`Missing web shell fragment: ${fragment}`);
