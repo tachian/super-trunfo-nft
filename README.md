@@ -83,6 +83,22 @@ docker compose -f infra/docker/compose.yaml config
 docker compose -f infra/docker/compose.yaml up --build
 ```
 
+### Executar o app mobile
+
+```bash
+cd apps/mobile
+flutter pub get
+flutter run --dart-define=SUPER_TRUNFO_ENV=local
+```
+
+Para apontar para outro ambiente:
+
+```bash
+flutter run \
+  --dart-define=SUPER_TRUNFO_ENV=staging \
+  --dart-define=SUPER_TRUNFO_API_BASE_URL=https://staging.super-trunfo.app
+```
+
 Para subir em background:
 
 ```bash
