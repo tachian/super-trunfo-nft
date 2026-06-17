@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "e2e:smoke": "node scripts/e2e-smoke.mjs",
     "lint": "tsc --noEmit",
     "start": "next start",
-    "test": "node scripts/smoke-test.mjs"
+    "test": "node scripts/smoke-test.mjs && node scripts/e2e-smoke.mjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
