@@ -660,12 +660,156 @@ dd {
   padding: 22px;
 }
 
+.match-table {
+  display: grid;
+  gap: 18px;
+}
+
+.match-status-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.match-arena {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(280px, 1fr) 180px minmax(280px, 1fr);
+}
+
+.battle-card.detailed {
+  grid-template-columns: 110px minmax(0, 1fr);
+  min-height: 310px;
+}
+
+.battle-card.detailed > div {
+  min-width: 0;
+}
+
+.battle-card.detailed span {
+  color: var(--muted);
+}
+
+.versus-panel {
+  align-content: center;
+  background: #f9fbfd;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-height: 180px;
+  padding: 18px;
+  text-align: center;
+}
+
+.versus-panel span,
+.versus-panel small {
+  color: var(--muted);
+}
+
+.versus-panel strong {
+  color: var(--accent-strong);
+  overflow-wrap: anywhere;
+}
+
 .score-line {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .score-line dd {
   font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.attribute-panel {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.attribute-button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  min-height: 82px;
+  padding: 12px;
+  text-align: left;
+}
+
+.attribute-button span {
+  color: var(--muted);
+}
+
+.attribute-button strong {
+  font-size: 1.3rem;
+}
+
+.attribute-button.selected,
+.active-attribute {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #d2ecef;
+}
+
+.attribute-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.battle-attributes .active-attribute {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.round-history {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.round-list {
+  display: grid;
+  gap: 8px;
+}
+
+.round-row {
+  align-items: center;
+  background: #f9fbfd;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 52px minmax(0, 1fr) 90px 90px;
+  min-height: 48px;
+  padding: 0 12px;
+}
+
+.round-row span,
+.round-row small {
+  color: var(--muted);
+}
+
+.round-row strong,
+.round-row em {
+  overflow-wrap: anywhere;
+}
+
+.round-row em {
+  font-style: normal;
   font-weight: 800;
 }
 
@@ -714,6 +858,7 @@ dd {
   .deck-builder,
   .offer-grid,
   .match-board,
+  .match-arena,
   .collection-layout {
     grid-template-columns: 1fr;
   }
@@ -770,6 +915,8 @@ dd {
   .deck-builder,
   .compact-attributes,
   .score-line,
+  .match-status-grid,
+  .attribute-panel,
   .offer-grid,
   .leader-row,
   .leader-row dl {
@@ -777,8 +924,15 @@ dd {
   }
 
   .card-tile,
+  .battle-card.detailed,
   .battle-card {
     grid-template-columns: 1fr;
+  }
+
+  .round-row {
+    align-items: start;
+    grid-template-columns: 1fr;
+    padding: 12px;
   }
 
   .leader-position {
