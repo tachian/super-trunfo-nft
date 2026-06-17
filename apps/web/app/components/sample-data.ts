@@ -13,6 +13,12 @@ export type CollectionCard = {
   resistance: number;
 };
 
+export type CardAttributeKey =
+  | "speed"
+  | "strength"
+  | "intelligence"
+  | "resistance";
+
 export type ShopOffer = {
   id: string;
   title: string;
@@ -249,6 +255,17 @@ export function rarityLabel(rarity: CardRarity): string {
   };
 
   return labels[rarity];
+}
+
+export function attributeLabel(attribute: CardAttributeKey): string {
+  const labels: Record<CardAttributeKey, string> = {
+    speed: "Velocidade",
+    strength: "Forca",
+    intelligence: "Inteligencia",
+    resistance: "Resistencia",
+  };
+
+  return labels[attribute];
 }
 
 export function formatDate(value: string): string {
