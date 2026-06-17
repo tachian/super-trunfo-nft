@@ -23,7 +23,9 @@ export function CollectionDeckManager() {
   );
 
   const families = useMemo(() => {
-    return [...new Set(collectionCards.map((card) => card.family))].sort();
+    return [...new Set(collectionCards.map((card) => card.family))].sort(
+      (leftFamily, rightFamily) => leftFamily.localeCompare(rightFamily),
+    );
   }, []);
 
   const filteredCards = useMemo(() => {
