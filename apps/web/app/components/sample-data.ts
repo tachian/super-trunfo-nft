@@ -78,9 +78,112 @@ export const collectionCards: CollectionCard[] = [
     intelligence: 66,
     resistance: 75,
   },
+  {
+    id: "card-ember-05",
+    name: "Ember Striker",
+    family: "Fogo",
+    rarity: "rare",
+    level: 82,
+    expiresAt: "2026-09-15T18:00:00Z",
+    speed: 86,
+    strength: 84,
+    intelligence: 67,
+    resistance: 72,
+  },
+  {
+    id: "card-mist-06",
+    name: "Mist Oracle",
+    family: "Agua",
+    rarity: "epic",
+    level: 90,
+    expiresAt: "2026-11-02T18:00:00Z",
+    speed: 72,
+    strength: 61,
+    intelligence: 96,
+    resistance: 83,
+  },
+  {
+    id: "card-iron-07",
+    name: "Iron Howl",
+    family: "Terra",
+    rarity: "common",
+    level: 68,
+    expiresAt: "2026-08-18T18:00:00Z",
+    speed: 63,
+    strength: 78,
+    intelligence: 58,
+    resistance: 81,
+  },
+  {
+    id: "card-neon-08",
+    name: "Neon Tactician",
+    family: "Arcano",
+    rarity: "rare",
+    level: 86,
+    expiresAt: "2026-12-09T18:00:00Z",
+    speed: 80,
+    strength: 70,
+    intelligence: 91,
+    resistance: 76,
+  },
+  {
+    id: "card-gale-09",
+    name: "Gale Scout",
+    family: "Vento",
+    rarity: "common",
+    level: 73,
+    expiresAt: "2026-09-24T18:00:00Z",
+    speed: 88,
+    strength: 60,
+    intelligence: 69,
+    resistance: 67,
+  },
+  {
+    id: "card-crystal-10",
+    name: "Crystal Warden",
+    family: "Solar",
+    rarity: "epic",
+    level: 89,
+    expiresAt: "2026-10-20T18:00:00Z",
+    speed: 70,
+    strength: 86,
+    intelligence: 82,
+    resistance: 92,
+  },
+  {
+    id: "card-tide-11",
+    name: "Tide Duelist",
+    family: "Agua",
+    rarity: "rare",
+    level: 80,
+    expiresAt: "2026-07-31T18:00:00Z",
+    speed: 84,
+    strength: 73,
+    intelligence: 78,
+    resistance: 74,
+  },
+  {
+    id: "card-ash-12",
+    name: "Ash Keeper",
+    family: "Fogo",
+    rarity: "common",
+    level: 65,
+    expiresAt: "2026-05-01T18:00:00Z",
+    speed: 61,
+    strength: 69,
+    intelligence: 64,
+    resistance: 71,
+  },
 ];
 
-export const deckCards = collectionCards.slice(0, 3);
+export const initialDeckCardIds = collectionCards
+  .filter((card) => card.id !== "card-ash-12")
+  .slice(0, 10)
+  .map((card) => card.id);
+
+export const deckCards = collectionCards.filter((card) =>
+  initialDeckCardIds.includes(card.id),
+);
 
 export const shopOffers: ShopOffer[] = [
   {
