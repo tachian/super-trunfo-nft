@@ -5,10 +5,18 @@ from uuid import UUID
 
 from super_trunfo_shared import DomainEvent
 
-from app.domain.entities import NftMetadata, create_nft_metadata
-from app.domain.events import nft_metadata_generated_event
+from app.domain.entities import (
+    MarketplaceListing,
+    NftMetadata,
+    create_marketplace_listing,
+    create_nft_metadata,
+)
+from app.domain.events import (
+    marketplace_listing_created_event,
+    nft_metadata_generated_event,
+)
 from app.domain.exceptions import NftMetadataNotFoundError
-from app.domain.repositories import NftMetadataRepository
+from app.domain.repositories import MarketplaceListingRepository, NftMetadataRepository
 
 
 class DomainEventPublisher(Protocol):
@@ -33,6 +41,26 @@ class GenerateNftMetadataCommand:
 @dataclass(frozen=True)
 class GetNftMetadataQuery:
     card_id: UUID
+
+
+@dataclass(frozen=True)
+class CreateMarketplaceListingCommand:
+    seller_id: UUID
+    card_id: UUID
+    token_id: int
+    price: int
+    expires_at: datetime
+
+
+@dataclass(frozen=True)
+class CreateMarketplaceListingResult:
+    listing: MarketplaceListing
+    events: tuple[DomainEvent, ...]
+
+
+@dataclass(frozen=True)
+class ListMarketplaceListingsResult:
+    listings: tuple[MarketplaceListing, ...]
 
 
 class GenerateNftMetadata:
@@ -75,6 +103,42 @@ class GetNftMetadata:
             raise NftMetadataNotFoundError("NFT metadata was not generated for card")
 
         return metadata
+
+
+class CreateMarketplaceListing:
+    def __init__(
+        self,
+        repository: MarketplaceListingRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
+        self.repository = repository
+        self.event_publisher = event_publisher
+
+    def execute(
+        self,
+        command: CreateMarketplaceListingCommand,
+    ) -> CreateMarketplaceListingResult:
+        listing = create_marketplace_listing(
+            seller_id=command.seller_id,
+            card_id=command.card_id,
+            token_id=command.token_id,
+            price=command.price,
+            expires_at=command.expires_at,
+        )
+        self.repository.save(listing)
+
+        event = marketplace_listing_created_event(listing)
+        self.event_publisher.publish(event)
+
+        return CreateMarketplaceListingResult(listing=listing, events=(event,))
+
+
+class ListMarketplaceListings:
+    def __init__(self, repository: MarketplaceListingRepository) -> None:
+        self.repository = repository
+
+    def execute(self) -> ListMarketplaceListingsResult:
+        return ListMarketplaceListingsResult(listings=self.repository.list_active())
 
 
 def command_from_card_created_payload(

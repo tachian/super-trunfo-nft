@@ -438,6 +438,39 @@ paths:
       responses:
         "202":
           description: Disabled until post-MVP
+  /marketplace/listings:
+    post:
+      summary: Create a marketplace listing for an NFT card
+      operationId: createMarketplaceListing
+      tags: [Marketplace]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMarketplaceListingRequest"
+      responses:
+        "201":
+          description: Marketplace listing created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketplaceListing"
+        "400":
+          description: Invalid marketplace listing
+    get:
+      summary: List active marketplace listings
+      operationId: listMarketplaceListings
+      tags: [Marketplace]
+      responses:
+        "200":
+          description: Active marketplace listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketplaceListing"
 components:
   securitySchemes:
     bearerAuth:
@@ -1531,3 +1564,79 @@ components:
             mint_enabled:
               type: boolean
               enum: [false]
+    CreateMarketplaceListingRequest:
+      type: object
+      required: [seller_id, card_id, token_id, price, expires_at]
+      properties:
+        seller_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        token_id:
+          type: integer
+          minimum: 1
+        price:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+    MarketplaceListingHistoryEntry:
+      type: object
+      required: [status, changed_at, reason]
+      properties:
+        status:
+          type: string
+          enum: [active, expired, cancelled, sold]
+        changed_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          minLength: 1
+    MarketplaceListing:
+      type: object
+      required:
+        [
+          id,
+          seller_id,
+          card_id,
+          token_id,
+          price,
+          status,
+          expires_at,
+          created_at,
+          history,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        seller_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        token_id:
+          type: integer
+          minimum: 1
+        price:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [active, expired, cancelled, sold]
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        history:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/MarketplaceListingHistoryEntry"
