@@ -46,8 +46,8 @@ for (const check of sourceChecks) {
 
 const services = createMockServices();
 const session = await services.auth.login({
+  credentialSecret: smokeCredentialSecret(),
   email: "player@example.test",
-  password: "super-trunfo-mvp",
 });
 assert(session.accessToken.startsWith("mock-token-"), "Login token not issued");
 
@@ -117,7 +117,10 @@ function createMockServices() {
     auth: {
       async login(payload) {
         assert(payload.email.includes("@"), "Login email must be valid");
-        assert(payload.password.length >= 8, "Login password must be valid");
+        assert(
+          payload.credentialSecret.length >= 8,
+          "Login credential must be valid",
+        );
 
         return {
           accessToken: player.token,
@@ -270,6 +273,13 @@ function averageLevel(cards) {
 
 function assertToken(receivedToken, expectedToken) {
   assert(receivedToken === expectedToken, "Invalid session token");
+}
+
+function smokeCredentialSecret() {
+  return (
+    process.env.SUPER_TRUNFO_E2E_SECRET ??
+    `smoke-${process.platform}-${process.version}`
+  );
 }
 
 function assert(condition, message) {
