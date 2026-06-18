@@ -15,7 +15,6 @@ from app.domain.exceptions import NftInvariantError
 from app.infrastructure.repositories import InMemoryMarketplaceListingRepository
 from super_trunfo_shared import InMemoryDomainEventPublisher
 
-
 SELLER_ID = UUID("11111111-7030-4703-8703-000000000001")
 CARD_ID = UUID("22222222-7030-4703-8703-000000000001")
 

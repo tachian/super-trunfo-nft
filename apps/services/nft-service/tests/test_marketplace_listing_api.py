@@ -4,7 +4,6 @@ import pytest
 from app.main import app
 from httpx import ASGITransport, AsyncClient
 
-
 SELLER_ID = "11111111-7030-4703-8703-000000000001"
 CARD_ID = "22222222-7030-4703-8703-000000000001"
 
