@@ -194,8 +194,64 @@ events:
       expires_at: datetime
       created_at: datetime
   - name: TradeCreated
+    version: 1.0.0
     producer: nft-service
     consumers: [economy-service, notification-service]
+    payload:
+      schema_version: string
+      trade_id: uuid
+      listing_id: uuid
+      seller_id: uuid
+      buyer_id: uuid
+      card_id: uuid
+      token_id: integer
+      price: integer
+      status: string
+      created_at: datetime
+  - name: TradeAccepted
+    version: 1.0.0
+    producer: nft-service
+    consumers: [economy-service, ranking-service, notification-service]
+    payload:
+      schema_version: string
+      trade_id: uuid
+      listing_id: uuid
+      seller_id: uuid
+      buyer_id: uuid
+      card_id: uuid
+      token_id: integer
+      price: integer
+      status: string
+      accepted_at: datetime
+  - name: TradeCancelled
+    version: 1.0.0
+    producer: nft-service
+    consumers: [economy-service, notification-service]
+    payload:
+      schema_version: string
+      trade_id: uuid
+      listing_id: uuid
+      seller_id: uuid
+      buyer_id: uuid
+      card_id: uuid
+      token_id: integer
+      price: integer
+      status: string
+      cancelled_at: datetime
+      cancellation_reason: string
+  - name: NFTTransferred
+    version: 1.0.0
+    producer: nft-service
+    consumers: [economy-service, ranking-service, notification-service]
+    payload:
+      schema_version: string
+      trade_id: uuid
+      listing_id: uuid
+      card_id: uuid
+      token_id: integer
+      from_player_id: uuid
+      to_player_id: uuid
+      transferred_at: datetime
   - name: MarketplaceSaleCompleted
     producer: nft-service
     consumers: [economy-service, ranking-service, notification-service]

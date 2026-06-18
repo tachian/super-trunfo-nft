@@ -1,7 +1,7 @@
 from typing import Protocol
 from uuid import UUID
 
-from .entities import MarketplaceListing, NftMetadata
+from .entities import MarketplaceListing, NftMetadata, Trade
 
 
 class NftMetadataRepository(Protocol):
@@ -21,3 +21,11 @@ class MarketplaceListingRepository(Protocol):
 
     def list_active(self) -> tuple[MarketplaceListing, ...]:
         """List active marketplace listings."""
+
+
+class TradeRepository(Protocol):
+    def save(self, trade: Trade) -> None:
+        """Persist a marketplace trade."""
+
+    def find_by_id(self, trade_id: UUID) -> Trade | None:
+        """Find a marketplace trade by id."""

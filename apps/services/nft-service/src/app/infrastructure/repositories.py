@@ -5,6 +5,7 @@ from app.domain.entities import (
     MarketplaceListing,
     MarketplaceListingStatus,
     NftMetadata,
+    Trade,
 )
 
 
@@ -53,3 +54,20 @@ class InMemoryMarketplaceListingRepository:
     def clear(self) -> None:
         with self._lock:
             self._listings_by_id.clear()
+
+
+class InMemoryTradeRepository:
+    def __init__(self) -> None:
+        self._trades_by_id: dict[UUID, Trade] = {}
+        self._lock = Lock()
+
+    def save(self, trade: Trade) -> None:
+        with self._lock:
+            self._trades_by_id[trade.id] = trade
+
+    def find_by_id(self, trade_id: UUID) -> Trade | None:
+        return self._trades_by_id.get(trade_id)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._trades_by_id.clear()

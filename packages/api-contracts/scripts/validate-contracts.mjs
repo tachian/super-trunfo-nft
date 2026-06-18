@@ -285,12 +285,21 @@ for (const fragment of requiredIdentityEventFragments) {
 const requiredNftEventFragments = [
   "name: NftMetadataGenerated",
   "name: MarketplaceListingCreated",
+  "name: TradeCreated",
+  "name: TradeAccepted",
+  "name: TradeCancelled",
+  "name: NFTTransferred",
   "producer: nft-service",
   "metadata_uri: string",
   "mint_enabled: boolean",
   "listing_id: uuid",
+  "trade_id: uuid",
   "seller_id: uuid",
+  "buyer_id: uuid",
   "token_id: integer",
+  "from_player_id: uuid",
+  "to_player_id: uuid",
+  "transferred_at: datetime",
 ];
 
 for (const fragment of requiredNftEventFragments) {

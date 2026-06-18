@@ -5,6 +5,7 @@ from app.api.routes import create_nft_router
 from app.infrastructure.repositories import (
     InMemoryMarketplaceListingRepository,
     InMemoryNftMetadataRepository,
+    InMemoryTradeRepository,
 )
 
 SERVICE_NAME = "nft-service"
@@ -24,6 +25,7 @@ app = create_service_app(
 )
 app.state.nft_metadata_repository = InMemoryNftMetadataRepository()
 app.state.marketplace_listing_repository = InMemoryMarketplaceListingRepository()
+app.state.trade_repository = InMemoryTradeRepository()
 app.state.domain_event_publisher = InMemoryDomainEventPublisher(
     service_name=SERVICE_NAME,
     context=CONTEXT,
