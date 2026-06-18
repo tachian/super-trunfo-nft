@@ -73,6 +73,6 @@ async def test_create_marketplace_listing_rejects_expired_payload() -> None:
 
 @pytest.mark.anyio
 async def test_marketplace_routes_are_registered() -> None:
-    route_paths = {getattr(route, "path", None) for route in app.routes}
+    route_paths = set(app.openapi()["paths"])
 
     assert "/marketplace/listings" in route_paths
