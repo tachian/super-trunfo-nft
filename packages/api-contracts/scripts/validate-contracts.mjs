@@ -61,10 +61,16 @@ for (const fragment of requiredCardContractFragments) {
 const requiredNftContractFragments = [
   "operationId: generateOfflineNftMetadata",
   "operationId: getNftMetadata",
+  "operationId: createMarketplaceListing",
+  "operationId: listMarketplaceListings",
   "GenerateNftMetadataRequest:",
   "NftMetadata:",
   "NftAttribute:",
+  "CreateMarketplaceListingRequest:",
+  "MarketplaceListing:",
+  "MarketplaceListingHistoryEntry:",
   "mint_enabled:",
+  "enum: [active, expired, cancelled, sold]",
   "enum: [false]",
 ];
 
@@ -278,9 +284,13 @@ for (const fragment of requiredIdentityEventFragments) {
 
 const requiredNftEventFragments = [
   "name: NftMetadataGenerated",
+  "name: MarketplaceListingCreated",
   "producer: nft-service",
   "metadata_uri: string",
   "mint_enabled: boolean",
+  "listing_id: uuid",
+  "seller_id: uuid",
+  "token_id: integer",
 ];
 
 for (const fragment of requiredNftEventFragments) {

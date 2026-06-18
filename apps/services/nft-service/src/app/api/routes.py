@@ -7,13 +7,16 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 from app.application.use_cases import (
+    CreateMarketplaceListing,
+    CreateMarketplaceListingCommand,
     GenerateNftMetadata,
     GenerateNftMetadataCommand,
     GetNftMetadata,
     GetNftMetadataQuery,
+    ListMarketplaceListings,
 )
-from app.domain.entities import NftMetadata
-from app.domain.exceptions import NftMetadataNotFoundError
+from app.domain.entities import MarketplaceListing, NftMetadata
+from app.domain.exceptions import NftInvariantError, NftMetadataNotFoundError
 
 
 class GenerateNftMetadataRequest(BaseModel):
@@ -57,6 +60,32 @@ class NftMetadataResponse(BaseModel):
     image: str
     attributes: list[NftAttributeResponse]
     properties: NftMetadataPropertiesResponse
+
+
+class CreateMarketplaceListingRequest(BaseModel):
+    seller_id: UUID
+    card_id: UUID
+    token_id: Annotated[int, Field(gt=0)]
+    price: Annotated[int, Field(gt=0)]
+    expires_at: datetime
+
+
+class MarketplaceListingHistoryResponse(BaseModel):
+    status: str
+    changed_at: datetime
+    reason: str
+
+
+class MarketplaceListingResponse(BaseModel):
+    id: UUID
+    seller_id: UUID
+    card_id: UUID
+    token_id: int
+    price: int
+    status: str
+    expires_at: datetime
+    created_at: datetime
+    history: list[MarketplaceListingHistoryResponse]
 
 
 def create_nft_router() -> APIRouter:
@@ -122,9 +151,50 @@ def create_nft_router() -> APIRouter:
             "reason": "Mint on-chain is outside the MVP scope.",
         }
 
-    @router.get("/marketplace/listings", status_code=status.HTTP_202_ACCEPTED, tags=["marketplace"])
-    async def marketplace_listings() -> dict[str, str]:
-        return {"service": "nft-service", "status": "planned", "task": "ST-703"}
+    @router.post(
+        "/marketplace/listings",
+        status_code=status.HTTP_201_CREATED,
+        response_model=MarketplaceListingResponse,
+        tags=["marketplace"],
+        responses={400: {"description": "Invalid marketplace listing"}},
+    )
+    async def create_marketplace_listing(
+        payload: CreateMarketplaceListingRequest,
+        request: Request,
+    ) -> MarketplaceListingResponse | JSONResponse:
+        use_case = CreateMarketplaceListing(
+            request.app.state.marketplace_listing_repository,
+            request.app.state.domain_event_publisher,
+        )
+
+        try:
+            result = use_case.execute(
+                CreateMarketplaceListingCommand(
+                    seller_id=payload.seller_id,
+                    card_id=payload.card_id,
+                    token_id=payload.token_id,
+                    price=payload.price,
+                    expires_at=payload.expires_at,
+                )
+            )
+        except NftInvariantError as _exc:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": "Invalid marketplace listing."},
+            )
+
+        return marketplace_listing_response(result.listing)
+
+    @router.get(
+        "/marketplace/listings",
+        response_model=list[MarketplaceListingResponse],
+        tags=["marketplace"],
+    )
+    async def marketplace_listings(request: Request) -> list[MarketplaceListingResponse]:
+        use_case = ListMarketplaceListings(request.app.state.marketplace_listing_repository)
+        result = use_case.execute()
+
+        return [marketplace_listing_response(listing) for listing in result.listings]
 
     return router
 
@@ -133,3 +203,24 @@ def metadata_response(metadata: NftMetadata) -> NftMetadataResponse:
     erc721_metadata = metadata.to_erc721_json()
 
     return NftMetadataResponse.model_validate(erc721_metadata)
+
+
+def marketplace_listing_response(listing: MarketplaceListing) -> MarketplaceListingResponse:
+    return MarketplaceListingResponse(
+        id=listing.id,
+        seller_id=listing.seller_id,
+        card_id=listing.card_id,
+        token_id=listing.token_id,
+        price=listing.price,
+        status=listing.status.value,
+        expires_at=listing.expires_at,
+        created_at=listing.created_at,
+        history=[
+            MarketplaceListingHistoryResponse(
+                status=entry.status.value,
+                changed_at=entry.changed_at,
+                reason=entry.reason,
+            )
+            for entry in listing.history
+        ],
+    )

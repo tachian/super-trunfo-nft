@@ -179,6 +179,20 @@ events:
       wins: integer
       losses: integer
       updated_at: datetime
+  - name: MarketplaceListingCreated
+    version: 1.0.0
+    producer: nft-service
+    consumers: [economy-service, notification-service]
+    payload:
+      schema_version: string
+      listing_id: uuid
+      seller_id: uuid
+      card_id: uuid
+      token_id: integer
+      price: integer
+      status: string
+      expires_at: datetime
+      created_at: datetime
   - name: TradeCreated
     producer: nft-service
     consumers: [economy-service, notification-service]

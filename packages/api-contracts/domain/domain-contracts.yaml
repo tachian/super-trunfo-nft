@@ -181,6 +181,12 @@ contexts:
       - MarketplaceSaleCompleted
     feature_flags:
       - FEATURE_NFT_ENABLED
+    invariants:
+      - Marketplace listing price must be positive.
+      - Marketplace listing token id must be positive.
+      - Marketplace listing expiration must be after creation.
+      - Marketplace listing status must match the latest history entry.
+      - Only active marketplace listings can be cancelled or sold.
   social:
     service: social-service
     aggregates:
