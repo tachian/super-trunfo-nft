@@ -8,15 +8,29 @@ from super_trunfo_shared import DomainEvent
 from app.domain.entities import (
     MarketplaceListing,
     NftMetadata,
+    Trade,
     create_marketplace_listing,
     create_nft_metadata,
+    create_trade_from_listing,
 )
 from app.domain.events import (
     marketplace_listing_created_event,
     nft_metadata_generated_event,
+    nft_transferred_event,
+    trade_accepted_event,
+    trade_cancelled_event,
+    trade_created_event,
 )
-from app.domain.exceptions import NftMetadataNotFoundError
-from app.domain.repositories import MarketplaceListingRepository, NftMetadataRepository
+from app.domain.exceptions import (
+    MarketplaceListingNotFoundError,
+    NftMetadataNotFoundError,
+    TradeNotFoundError,
+)
+from app.domain.repositories import (
+    MarketplaceListingRepository,
+    NftMetadataRepository,
+    TradeRepository,
+)
 
 
 class DomainEventPublisher(Protocol):
@@ -61,6 +75,29 @@ class CreateMarketplaceListingResult:
 @dataclass(frozen=True)
 class ListMarketplaceListingsResult:
     listings: tuple[MarketplaceListing, ...]
+
+
+@dataclass(frozen=True)
+class CreateTradeCommand:
+    listing_id: UUID
+    buyer_id: UUID
+
+
+@dataclass(frozen=True)
+class AcceptTradeCommand:
+    trade_id: UUID
+
+
+@dataclass(frozen=True)
+class CancelTradeCommand:
+    trade_id: UUID
+    reason: str = "trade cancelled"
+
+
+@dataclass(frozen=True)
+class TradeResult:
+    trade: Trade
+    events: tuple[DomainEvent, ...]
 
 
 class GenerateNftMetadata:
@@ -139,6 +176,93 @@ class ListMarketplaceListings:
 
     def execute(self) -> ListMarketplaceListingsResult:
         return ListMarketplaceListingsResult(listings=self.repository.list_active())
+
+
+class CreateTrade:
+    def __init__(
+        self,
+        listing_repository: MarketplaceListingRepository,
+        trade_repository: TradeRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
+        self.listing_repository = listing_repository
+        self.trade_repository = trade_repository
+        self.event_publisher = event_publisher
+
+    def execute(self, command: CreateTradeCommand) -> TradeResult:
+        listing = self.listing_repository.find_by_id(command.listing_id)
+
+        if listing is None:
+            raise MarketplaceListingNotFoundError("marketplace listing was not found")
+
+        trade = create_trade_from_listing(listing=listing, buyer_id=command.buyer_id)
+        self.trade_repository.save(trade)
+
+        event = trade_created_event(trade)
+        self.event_publisher.publish(event)
+
+        return TradeResult(trade=trade, events=(event,))
+
+
+class AcceptTrade:
+    def __init__(
+        self,
+        listing_repository: MarketplaceListingRepository,
+        trade_repository: TradeRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
+        self.listing_repository = listing_repository
+        self.trade_repository = trade_repository
+        self.event_publisher = event_publisher
+
+    def execute(self, command: AcceptTradeCommand) -> TradeResult:
+        trade = self.trade_repository.find_by_id(command.trade_id)
+
+        if trade is None:
+            raise TradeNotFoundError("marketplace trade was not found")
+
+        accepted_trade = trade.accept()
+        listing = self.listing_repository.find_by_id(accepted_trade.listing_id)
+
+        if listing is None:
+            raise MarketplaceListingNotFoundError("marketplace listing was not found")
+
+        self.listing_repository.save(listing.mark_sold())
+        self.trade_repository.save(accepted_trade)
+
+        events = (
+            trade_accepted_event(accepted_trade),
+            nft_transferred_event(accepted_trade),
+        )
+
+        for event in events:
+            self.event_publisher.publish(event)
+
+        return TradeResult(trade=accepted_trade, events=events)
+
+
+class CancelTrade:
+    def __init__(
+        self,
+        trade_repository: TradeRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
+        self.trade_repository = trade_repository
+        self.event_publisher = event_publisher
+
+    def execute(self, command: CancelTradeCommand) -> TradeResult:
+        trade = self.trade_repository.find_by_id(command.trade_id)
+
+        if trade is None:
+            raise TradeNotFoundError("marketplace trade was not found")
+
+        cancelled_trade = trade.cancel(reason=command.reason)
+        self.trade_repository.save(cancelled_trade)
+
+        event = trade_cancelled_event(cancelled_trade)
+        self.event_publisher.publish(event)
+
+        return TradeResult(trade=cancelled_trade, events=(event,))
 
 
 def command_from_card_created_payload(

@@ -17,6 +17,12 @@ class MarketplaceListingStatus(StrEnum):
     SOLD = "sold"
 
 
+class TradeStatus(StrEnum):
+    CREATED = "created"
+    ACCEPTED = "accepted"
+    CANCELLED = "cancelled"
+
+
 @dataclass(frozen=True)
 class NftAttribute:
     trait_type: str
@@ -228,6 +234,116 @@ class MarketplaceListing:
         )
 
 
+@dataclass(frozen=True)
+class Trade:
+    id: UUID
+    listing_id: UUID
+    seller_id: UUID
+    buyer_id: UUID
+    card_id: UUID
+    token_id: int
+    price: int
+    status: TradeStatus
+    created_at: datetime
+    accepted_at: datetime | None = None
+    cancelled_at: datetime | None = None
+    cancellation_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        normalized_status = TradeStatus(self.status)
+
+        if self.seller_id == self.buyer_id:
+            raise NftInvariantError("marketplace trade requires different players")
+
+        if self.token_id <= 0:
+            raise NftInvariantError("marketplace trade token id must be positive")
+
+        if self.price <= 0:
+            raise NftInvariantError("marketplace trade price must be positive")
+
+        if self.created_at.tzinfo is None:
+            raise NftInvariantError("marketplace trade creation date must be timezone-aware")
+
+        if self.accepted_at is not None and self.accepted_at.tzinfo is None:
+            raise NftInvariantError("marketplace trade accepted date must be timezone-aware")
+
+        if self.cancelled_at is not None and self.cancelled_at.tzinfo is None:
+            raise NftInvariantError("marketplace trade cancelled date must be timezone-aware")
+
+        if normalized_status == TradeStatus.ACCEPTED and self.accepted_at is None:
+            raise NftInvariantError("accepted marketplace trade must include accepted date")
+
+        if normalized_status == TradeStatus.CANCELLED and self.cancelled_at is None:
+            raise NftInvariantError("cancelled marketplace trade must include cancelled date")
+
+        if normalized_status == TradeStatus.CREATED:
+            if self.accepted_at is not None or self.cancelled_at is not None:
+                raise NftInvariantError("created marketplace trade cannot include terminal dates")
+
+            if self.cancellation_reason is not None:
+                raise NftInvariantError(
+                    "created marketplace trade cannot include cancellation reason"
+                )
+
+        if normalized_status == TradeStatus.ACCEPTED and self.cancelled_at is not None:
+            raise NftInvariantError("accepted marketplace trade cannot include cancelled date")
+
+        if normalized_status == TradeStatus.CANCELLED and self.accepted_at is not None:
+            raise NftInvariantError("cancelled marketplace trade cannot include accepted date")
+
+        normalized_reason = (
+            self.cancellation_reason.strip()
+            if self.cancellation_reason is not None
+            else None
+        )
+
+        if normalized_status == TradeStatus.CANCELLED and not normalized_reason:
+            raise NftInvariantError("cancelled marketplace trade must include reason")
+
+        object.__setattr__(self, "status", normalized_status)
+        object.__setattr__(self, "cancellation_reason", normalized_reason)
+
+    def accept(self, *, accepted_at: datetime | None = None) -> "Trade":
+        if self.status != TradeStatus.CREATED:
+            raise NftInvariantError("only created marketplace trades can be accepted")
+
+        return Trade(
+            id=self.id,
+            listing_id=self.listing_id,
+            seller_id=self.seller_id,
+            buyer_id=self.buyer_id,
+            card_id=self.card_id,
+            token_id=self.token_id,
+            price=self.price,
+            status=TradeStatus.ACCEPTED,
+            created_at=self.created_at,
+            accepted_at=accepted_at or datetime.now(UTC),
+        )
+
+    def cancel(
+        self,
+        *,
+        cancelled_at: datetime | None = None,
+        reason: str = "trade cancelled",
+    ) -> "Trade":
+        if self.status != TradeStatus.CREATED:
+            raise NftInvariantError("only created marketplace trades can be cancelled")
+
+        return Trade(
+            id=self.id,
+            listing_id=self.listing_id,
+            seller_id=self.seller_id,
+            buyer_id=self.buyer_id,
+            card_id=self.card_id,
+            token_id=self.token_id,
+            price=self.price,
+            status=TradeStatus.CANCELLED,
+            created_at=self.created_at,
+            cancelled_at=cancelled_at or datetime.now(UTC),
+            cancellation_reason=reason,
+        )
+
+
 def create_nft_metadata(
     *,
     card_id: UUID,
@@ -270,6 +386,32 @@ def create_nft_metadata(
         attributes=tuple(attributes),
         generated_at=generated_at or datetime.now(UTC),
         mint_enabled=False,
+    )
+
+
+def create_trade_from_listing(
+    *,
+    listing: MarketplaceListing,
+    buyer_id: UUID,
+    trade_id: UUID | None = None,
+    created_at: datetime | None = None,
+) -> Trade:
+    resolved_created_at = created_at or datetime.now(UTC)
+    resolved_listing = listing.expire(resolved_created_at)
+
+    if resolved_listing.status != MarketplaceListingStatus.ACTIVE:
+        raise NftInvariantError("marketplace trade requires an active listing")
+
+    return Trade(
+        id=trade_id or uuid4(),
+        listing_id=resolved_listing.id,
+        seller_id=resolved_listing.seller_id,
+        buyer_id=buyer_id,
+        card_id=resolved_listing.card_id,
+        token_id=resolved_listing.token_id,
+        price=resolved_listing.price,
+        status=TradeStatus.CREATED,
+        created_at=resolved_created_at,
     )
 
 

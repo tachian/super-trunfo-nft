@@ -167,10 +167,14 @@ contexts:
       - NftMetadata
       - MintRequest
       - MarketplaceListing
+      - Trade
     commands:
       - GenerateNftMetadata
       - MintCardNft
       - CreateMarketplaceListing
+      - CreateTrade
+      - AcceptTrade
+      - CancelTrade
     queries:
       - GetNftMetadata
       - ListMarketplaceListings
@@ -178,6 +182,9 @@ contexts:
       - NftMetadataGenerated
       - NFTTransferred
       - MarketplaceListingCreated
+      - TradeCreated
+      - TradeAccepted
+      - TradeCancelled
       - MarketplaceSaleCompleted
     feature_flags:
       - FEATURE_NFT_ENABLED
@@ -187,6 +194,9 @@ contexts:
       - Marketplace listing expiration must be after creation.
       - Marketplace listing status must match the latest history entry.
       - Only active marketplace listings can be cancelled or sold.
+      - Marketplace trade requires different seller and buyer players.
+      - Marketplace trade price and token id must be positive.
+      - Only created marketplace trades can be accepted or cancelled.
   social:
     service: social-service
     aggregates:

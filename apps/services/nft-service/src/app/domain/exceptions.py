@@ -8,3 +8,7 @@ class NftMetadataNotFoundError(LookupError):
 
 class MarketplaceListingNotFoundError(LookupError):
     """Raised when a marketplace listing is not available."""
+
+
+class TradeNotFoundError(LookupError):
+    """Raised when a marketplace trade is not available."""
