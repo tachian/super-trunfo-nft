@@ -177,6 +177,9 @@ const requiredRankingContractFragments = [
   "operationId: getGlobalRanking",
   "operationId: getFriendsRanking",
   "operationId: recalculatePlayerRating",
+  "operationId: getCurrentSeason",
+  "operationId: startSeason",
+  "operationId: finishSeason",
   "RankingLeaderboardResponse:",
   "LeaderboardEntryResponse:",
   "RankingCache:",
@@ -184,10 +187,17 @@ const requiredRankingContractFragments = [
   "RecalculatePlayerRatingResponse:",
   "RankingRating:",
   "RankingEvent:",
+  "StartSeasonRequest:",
+  "SeasonReward:",
+  "SeasonResponse:",
+  "SeasonActionResponse:",
+  "CurrentSeasonResponse:",
   "enum: [bronze, silver, gold, platinum, diamond]",
   "enum: [ST-503]",
   "enum: [ST-504]",
+  "enum: [ST-803]",
   "enum: [global, friends]",
+  "enum: [active, finished]",
   "enum: [ranking-service]",
   "additionalProperties: false",
 ];
@@ -304,6 +314,10 @@ const requiredRankingDomainFragments = [
   "Global leaderboard is ordered by score, wins, losses and player id.",
   "Leaderboard queries use cache keys scoped by repository version and pagination.",
   "Friends leaderboard returns an empty cached list when no friend ids are provided.",
+  "Season duration is configurable in days.",
+  "Only one active season is allowed at a time.",
+  "Season finish partially resets ratings towards the default rating.",
+  "Season rewards are planned for the top three leaderboard positions and are not granted automatically.",
   "Bronze tier ranges from 0 to 999.",
   "Diamond tier starts at 2500.",
 ];
@@ -456,6 +470,8 @@ for (const fragment of requiredEconomyEventFragments) {
 
 const requiredRankingEventFragments = [
   "name: PlayerRankUpdated",
+  "name: SeasonStarted",
+  "name: SeasonFinished",
   "producer: ranking-service",
   "previous_score: integer",
   "score: integer",
@@ -463,6 +479,10 @@ const requiredRankingEventFragments = [
   "tier: string",
   "matches_played: integer",
   "updated_at: datetime",
+  "duration_days: integer",
+  "rating_reset_percentage: integer",
+  "reset_ratings_count: integer",
+  "reward_plan: object[]",
 ];
 
 for (const fragment of requiredRankingEventFragments) {

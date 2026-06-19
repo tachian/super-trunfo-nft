@@ -3,7 +3,7 @@ from uuid import UUID
 
 from super_trunfo_shared import DomainEvent
 
-from .entities import LeaderboardEntry, Rating
+from .entities import LeaderboardEntry, Rating, Season
 
 
 class RatingRepository(Protocol):
@@ -18,6 +18,17 @@ class RatingRepository(Protocol):
 
     def version(self) -> int:
         """Return a monotonically increasing repository version."""
+
+
+class SeasonRepository(Protocol):
+    def save(self, season: Season) -> None:
+        """Persist a season."""
+
+    def find_by_id(self, season_id: UUID) -> Season | None:
+        """Find a season by id."""
+
+    def find_current(self) -> Season | None:
+        """Find the active season."""
 
 
 class LeaderboardCache(Protocol):

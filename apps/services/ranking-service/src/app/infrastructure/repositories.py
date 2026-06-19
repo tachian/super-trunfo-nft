@@ -1,7 +1,7 @@
 from threading import Lock
 from uuid import UUID
 
-from app.domain.entities import LeaderboardEntry, Rating
+from app.domain.entities import LeaderboardEntry, Rating, Season, SeasonStatus
 
 
 class InMemoryRatingRepository:
@@ -30,6 +30,36 @@ class InMemoryRatingRepository:
         with self._lock:
             self._ratings_by_player_id.clear()
             self._version += 1
+
+
+class InMemorySeasonRepository:
+    def __init__(self) -> None:
+        self._seasons_by_id: dict[UUID, Season] = {}
+        self._lock = Lock()
+
+    def save(self, season: Season) -> None:
+        with self._lock:
+            self._seasons_by_id[season.id] = season
+
+    def find_by_id(self, season_id: UUID) -> Season | None:
+        return self._seasons_by_id.get(season_id)
+
+    def find_current(self) -> Season | None:
+        with self._lock:
+            seasons = tuple(self._seasons_by_id.values())
+
+        active_seasons = tuple(
+            season for season in seasons if season.status == SeasonStatus.ACTIVE
+        )
+
+        if not active_seasons:
+            return None
+
+        return sorted(active_seasons, key=lambda season: season.starts_at, reverse=True)[0]
+
+    def clear(self) -> None:
+        with self._lock:
+            self._seasons_by_id.clear()
 
 
 class InMemoryLeaderboardCache:

@@ -8,14 +8,20 @@ from pydantic import BaseModel, ConfigDict
 from super_trunfo_shared import DomainEvent
 
 from app.application.use_cases import (
+    FinishSeason,
+    FinishSeasonCommand,
+    GetCurrentSeason,
+    GetCurrentSeasonQuery,
     GetFriendsRanking,
     GetFriendsRankingQuery,
     GetGlobalRanking,
     GetGlobalRankingQuery,
     RecalculatePlayerRating,
     RecalculatePlayerRatingCommand,
+    StartSeason,
+    StartSeasonCommand,
 )
-from app.domain.entities import LeaderboardEntry, Rating
+from app.domain.entities import LeaderboardEntry, Rating, Season, SeasonReward
 from app.domain.exceptions import RankingInvariantError
 
 
@@ -25,6 +31,14 @@ class RecalculatePlayerRatingRequest(BaseModel):
     match_id: UUID
     winner_id: UUID
     loser_id: UUID
+
+
+class StartSeasonRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    duration_days: int
+    rating_reset_percentage: int = 50
 
 
 class RatingResponse(BaseModel):
@@ -72,6 +86,40 @@ class RecalculatePlayerRatingResponse(BaseModel):
     winner: RatingResponse
     loser: RatingResponse
     events: list[RankingEventResponse]
+
+
+class SeasonRewardResponse(BaseModel):
+    player_id: str
+    position: int
+    tier: str
+    planned_credits: int
+    planned_badge: str
+
+
+class SeasonResponse(BaseModel):
+    id: str
+    name: str
+    status: str
+    starts_at: datetime
+    ends_at: datetime
+    duration_days: int
+    rating_reset_percentage: int
+    finished_at: datetime | None
+    rewards: list[SeasonRewardResponse]
+
+
+class SeasonActionResponse(BaseModel):
+    service: str
+    task: str
+    season: SeasonResponse
+    reset_ratings: list[RatingResponse]
+    events: list[RankingEventResponse]
+
+
+class CurrentSeasonResponse(BaseModel):
+    service: str
+    task: str
+    season: SeasonResponse | None
 
 
 def create_ranking_router() -> APIRouter:
@@ -178,6 +226,85 @@ def create_ranking_router() -> APIRouter:
             events=ranking_event_responses(result.events),
         )
 
+    @router.get(
+        "/ranking/seasons/current",
+        operation_id="getCurrentSeason",
+        response_model=CurrentSeasonResponse,
+    )
+    async def current_season(request: Request) -> CurrentSeasonResponse:
+        result = GetCurrentSeason(request.app.state.season_repository).execute(
+            GetCurrentSeasonQuery()
+        )
+
+        return CurrentSeasonResponse(
+            service="ranking-service",
+            task="ST-803",
+            season=season_response(result.season) if result.season is not None else None,
+        )
+
+    @router.post(
+        "/ranking/seasons/start",
+        operation_id="startSeason",
+        response_model=SeasonActionResponse,
+        status_code=status.HTTP_201_CREATED,
+        responses={400: {"description": "Invalid season"}},
+    )
+    async def start_season(
+        payload: StartSeasonRequest,
+        request: Request,
+    ) -> SeasonActionResponse | JSONResponse:
+        try:
+            result = StartSeason(
+                request.app.state.season_repository,
+                request.app.state.domain_event_publisher,
+            ).execute(
+                StartSeasonCommand(
+                    name=payload.name,
+                    duration_days=payload.duration_days,
+                    rating_reset_percentage=payload.rating_reset_percentage,
+                )
+            )
+        except RankingInvariantError:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": "Invalid season."},
+            )
+
+        return season_action_response(result.season, result.reset_ratings, result.events)
+
+    @router.post(
+        "/ranking/seasons/{season_id}/finish",
+        operation_id="finishSeason",
+        response_model=SeasonActionResponse,
+        responses={
+            400: {"description": "Season cannot be finished"},
+            404: {"description": "Season not found"},
+        },
+    )
+    async def finish_season(
+        season_id: UUID,
+        request: Request,
+    ) -> SeasonActionResponse | JSONResponse:
+        try:
+            result = FinishSeason(
+                request.app.state.season_repository,
+                request.app.state.rating_repository,
+                request.app.state.domain_event_publisher,
+            ).execute(FinishSeasonCommand(season_id=season_id))
+        except RankingInvariantError as exc:
+            if str(exc) == "season was not found":
+                return JSONResponse(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    content={"detail": "Season not found."},
+                )
+
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": "Season cannot be finished."},
+            )
+
+        return season_action_response(result.season, result.reset_ratings, result.events)
+
     return router
 
 
@@ -218,6 +345,44 @@ def leaderboard_entry_response(entry: LeaderboardEntry) -> LeaderboardEntryRespo
     rating_payload = rating_response(entry.rating).model_dump()
 
     return LeaderboardEntryResponse(position=entry.position, **rating_payload)
+
+
+def season_response(season: Season) -> SeasonResponse:
+    return SeasonResponse(
+        id=str(season.id),
+        name=season.name,
+        status=season.status.value,
+        starts_at=season.starts_at,
+        ends_at=season.ends_at,
+        duration_days=season.duration_days,
+        rating_reset_percentage=season.rating_reset_percentage,
+        finished_at=season.finished_at,
+        rewards=[season_reward_response(reward) for reward in season.rewards],
+    )
+
+
+def season_reward_response(reward: SeasonReward) -> SeasonRewardResponse:
+    return SeasonRewardResponse(
+        player_id=str(reward.player_id),
+        position=reward.position,
+        tier=reward.tier.value,
+        planned_credits=reward.planned_credits,
+        planned_badge=reward.planned_badge,
+    )
+
+
+def season_action_response(
+    season: Season,
+    reset_ratings: tuple[Rating, ...],
+    events: tuple[DomainEvent, ...],
+) -> SeasonActionResponse:
+    return SeasonActionResponse(
+        service="ranking-service",
+        task="ST-803",
+        season=season_response(season),
+        reset_ratings=[rating_response(rating) for rating in reset_ratings],
+        events=ranking_event_responses(events),
+    )
 
 
 def ranking_event_responses(

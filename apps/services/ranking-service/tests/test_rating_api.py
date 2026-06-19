@@ -15,6 +15,7 @@ FRIEND_ID = UUID("44444444-4444-4444-8444-000000000503")
 @pytest.fixture(autouse=True)
 def reset_ranking_state() -> None:
     app.state.rating_repository.clear()
+    app.state.season_repository.clear()
     app.state.leaderboard_cache.clear()
     app.state.domain_event_publisher.clear()
 
@@ -210,6 +211,122 @@ def test_ranking_openapi_exposes_st504_operations() -> None:
     assert openapi["paths"]["/ranking/friends"]["get"]["operationId"] == "getFriendsRanking"
     assert "RankingLeaderboardResponse" in openapi["components"]["schemas"]
     assert "LeaderboardEntryResponse" in openapi["components"]["schemas"]
+
+
+@pytest.mark.anyio
+async def test_start_get_and_finish_season() -> None:
+    app.state.rating_repository.save_many(
+        (
+            rating(WINNER_ID, score=1400, wins=5),
+            rating(FRIEND_ID, score=1200, wins=3),
+            rating(LOSER_ID, score=900, wins=1),
+        )
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        start_response = await client.post(
+            "/ranking/seasons/start",
+            json={
+                "name": "Season Zero",
+                "duration_days": 14,
+                "rating_reset_percentage": 50,
+            },
+        )
+        season_id = start_response.json()["season"]["id"]
+        current_response = await client.get("/ranking/seasons/current")
+        finish_response = await client.post(
+            f"/ranking/seasons/{season_id}/finish",
+        )
+
+    start_payload = start_response.json()
+    current_payload = current_response.json()
+    finish_payload = finish_response.json()
+    events = app.state.domain_event_publisher.published_events()
+
+    assert start_response.status_code == 201
+    assert start_payload["task"] == "ST-803"
+    assert start_payload["season"]["duration_days"] == 14
+    assert start_payload["season"]["rating_reset_percentage"] == 50
+    assert current_response.status_code == 200
+    assert current_payload["season"]["id"] == season_id
+    assert finish_response.status_code == 200
+    assert finish_payload["season"]["status"] == "finished"
+    assert [reward["planned_credits"] for reward in finish_payload["season"]["rewards"]] == [
+        10,
+        5,
+        3,
+    ]
+    assert [rating["score"] for rating in finish_payload["reset_ratings"]] == [
+        1200,
+        1100,
+        950,
+    ]
+    assert [event.name for event in events] == ["SeasonStarted", "SeasonFinished"]
+
+
+@pytest.mark.anyio
+async def test_start_season_rejects_second_active_season() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        await client.post(
+            "/ranking/seasons/start",
+            json={
+                "name": "Season Zero",
+                "duration_days": 14,
+                "rating_reset_percentage": 50,
+            },
+        )
+        response = await client.post(
+            "/ranking/seasons/start",
+            json={
+                "name": "Season One",
+                "duration_days": 14,
+                "rating_reset_percentage": 50,
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid season."
+
+
+@pytest.mark.anyio
+async def test_finish_season_returns_not_found() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/ranking/seasons/99999999-9999-4999-8999-000000000803/finish"
+        )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Season not found."
+
+
+def test_ranking_openapi_exposes_st803_operations() -> None:
+    openapi = app.openapi()
+
+    assert (
+        openapi["paths"]["/ranking/seasons/current"]["get"]["operationId"]
+        == "getCurrentSeason"
+    )
+    assert (
+        openapi["paths"]["/ranking/seasons/start"]["post"]["operationId"]
+        == "startSeason"
+    )
+    assert (
+        openapi["paths"]["/ranking/seasons/{season_id}/finish"]["post"][
+            "operationId"
+        ]
+        == "finishSeason"
+    )
+    assert "SeasonResponse" in openapi["components"]["schemas"]
+    assert "SeasonActionResponse" in openapi["components"]["schemas"]
 
 
 def rating(player_id: UUID, *, score: int, wins: int = 0) -> Rating:
