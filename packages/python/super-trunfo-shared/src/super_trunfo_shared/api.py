@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from .health import health_response
 from .observability import (
@@ -13,6 +13,13 @@ from .observability import (
     mask_sensitive_data,
     new_correlation_id,
     parse_json_body,
+)
+from .security import (
+    FixedWindowRateLimiter,
+    client_identifier,
+    is_json_request,
+    security_headers,
+    security_settings_from_environment,
 )
 
 DEFAULT_CORS_ORIGINS = ""
@@ -84,6 +91,80 @@ def register_request_logging(app: FastAPI, *, service_name: str, context: str) -
         )
 
 
+def register_security_hardening(app: FastAPI) -> None:
+    settings = security_settings_from_environment()
+    rate_limiter = FixedWindowRateLimiter(
+        limit=settings.rate_limit_requests,
+        window_seconds=settings.rate_limit_window_seconds,
+    )
+
+    @app.middleware("http")
+    async def harden_http_request(request: Request, call_next) -> Response:
+        body = await request.body()
+
+        async def receive() -> dict[str, object]:
+            return {"type": "http.request", "body": body, "more_body": False}
+
+        if len(body) > settings.max_request_body_bytes:
+            response = JSONResponse(
+                status_code=413,
+                content={"detail": "Request body is too large."},
+            )
+            apply_security_headers(response, hsts_enabled=settings.hsts_enabled)
+            return response
+
+        if not is_json_request(request, body):
+            response = JSONResponse(
+                status_code=415,
+                content={"detail": "Unsupported media type."},
+            )
+            apply_security_headers(response, hsts_enabled=settings.hsts_enabled)
+            return response
+
+        if should_rate_limit(request, settings.excluded_paths, settings.rate_limit_enabled):
+            decision = rate_limiter.check(
+                f"{client_identifier(request)}:{request.method}:{request.url.path}"
+            )
+
+            if not decision.allowed:
+                response = JSONResponse(
+                    status_code=429,
+                    content={"detail": "Too many requests."},
+                    headers={
+                        "retry-after": str(decision.reset_seconds),
+                        "x-ratelimit-limit": str(decision.limit),
+                        "x-ratelimit-remaining": str(decision.remaining),
+                        "x-ratelimit-reset": str(decision.reset_seconds),
+                    },
+                )
+                apply_security_headers(response, hsts_enabled=settings.hsts_enabled)
+                return response
+
+        response = await call_next(Request(request.scope, receive))
+        apply_security_headers(response, hsts_enabled=settings.hsts_enabled)
+
+        return response
+
+
+def should_rate_limit(
+    request: Request,
+    excluded_paths: tuple[str, ...],
+    enabled: bool,
+) -> bool:
+    if not enabled:
+        return False
+
+    if request.method == "OPTIONS":
+        return False
+
+    return request.url.path not in excluded_paths
+
+
+def apply_security_headers(response: Response, *, hsts_enabled: bool) -> None:
+    for header, value in security_headers(hsts_enabled=hsts_enabled).items():
+        response.headers.setdefault(header, value)
+
+
 def create_service_app(
     *,
     service_name: str,
@@ -103,6 +184,7 @@ def create_service_app(
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_origins=cors_origins_from_environment(),
     )
+    register_security_hardening(app)
     register_request_logging(app, service_name=service_name, context=context)
 
     @app.get("/health", tags=["platform"])

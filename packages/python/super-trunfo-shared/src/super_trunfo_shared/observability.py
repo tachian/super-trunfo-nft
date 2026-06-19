@@ -10,6 +10,7 @@ from pythonjsonlogger import json as jsonlogger
 SENSITIVE_KEYS = {
     "authorization",
     "access_token",
+    "celular",
     "cpf",
     "email",
     "full_name",
