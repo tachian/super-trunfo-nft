@@ -24,5 +24,5 @@ Este documento conecta os principais requisitos do PDF as entregas planejadas.
 | Anti-cheat                          | Backend autoritativo, replay auditavel e validacoes | ST-304, ST-404                         |
 | DevOps GitHub Actions               | CI/CD, Docker, scan, staging/producao               | ST-004, ST-005, ST-804, ST-805         |
 | Qualidade bloqueante no CI          | Lint, PEP8/Ruff, duplicacao, CodeQL/Trivy e Sonar   | ST-004, ST-804                         |
-| Observabilidade                     | Prometheus, Grafana, Loki, OpenTelemetry e Jaeger   | ST-004, ST-804                         |
+| Observabilidade                     | Prometheus, Grafana, Loki, OpenTelemetry e Jaeger   | ST-004, ST-804, ST-805                 |
 | Escalabilidade AWS                  | Terraform, EKS, RDS, Redis, S3 e CloudFront         | ST-004, ST-805                         |

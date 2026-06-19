@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: super-trunfo-rc-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  super-trunfo-rc-dashboard.json: |-
+    {
+      "title": "Super Trunfo MVP Release Candidate",
+      "tags": ["super-trunfo", "mvp", "release-candidate"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "HTTP 5xx rate",
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{app_kubernetes_io_part_of=\"super-trunfo-nft\",status=~\"5..\"}[5m]))"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "HTTP p95 latency",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app_kubernetes_io_part_of=\"super-trunfo-nft\"}[5m])) by (le, service))"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Matchmaking queue depth",
+          "targets": [
+            {
+              "expr": "sum(matchmaking_queue_depth) by (tier)"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Domain events published",
+          "targets": [
+            {
+              "expr": "sum(rate(domain_events_published_total[5m])) by (domain_event_name)"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Economy credit balance",
+          "targets": [
+            {
+              "expr": "avg(economy_wallet_balance)"
+            }
+          ]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: super-trunfo-rc-alerts
+  labels:
+    prometheus_rule: "1"
+data:
+  super-trunfo-rc-alerts.yaml: |-
+    groups:
+      - name: super-trunfo-release-candidate
+        rules:
+          - alert: SuperTrunfoHighErrorRate
+            expr: sum(rate(http_requests_total{app_kubernetes_io_part_of="super-trunfo-nft",status=~"5.."}[5m])) > 0.05
+            for: 10m
+            labels:
+              severity: critical
+            annotations:
+              summary: Super Trunfo 5xx error rate is above the RC threshold
+          - alert: SuperTrunfoSlowApi
+            expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app_kubernetes_io_part_of="super-trunfo-nft"}[5m])) by (le, service)) > 1
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: Super Trunfo API p95 latency is above one second
+          - alert: SuperTrunfoMatchmakingBacklog
+            expr: sum(matchmaking_queue_depth) > 100
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: Matchmaking queues are growing during the release candidate

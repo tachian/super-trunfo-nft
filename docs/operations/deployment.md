@@ -60,3 +60,20 @@ Secrets esperados no GitHub:
 - `KUBE_CONFIG`
 - `AWS_ROLE_TO_ASSUME`, quando Terraform/CD usar OIDC para AWS
 - senhas de banco e RabbitMQ em um secret manager do ambiente
+
+## Release Candidate
+
+Antes de acionar staging, rode:
+
+```bash
+pnpm release:check
+```
+
+O runbook completo fica em `docs/operations/release-candidate.md` e o procedimento de rollback fica em `docs/operations/rollback-runbook.md`.
+
+O ST-805 exige:
+
+- ArgoCD staging apontando para `main` e overlay `infra/k8s/overlays/staging`;
+- dashboards e alertas do RC em `infra/k8s/base/observability.yaml`;
+- smoke tests manuais/automatizados registrados no release;
+- rollback testado ou revisado para o SHA/tag do release candidate.

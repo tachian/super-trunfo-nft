@@ -16,6 +16,7 @@
     "python:compile": "python3 -m compileall apps/services packages/python",
     "python:test": "node scripts/run-python-tests.mjs",
     "quality:duplicates": "node scripts/check-duplication.mjs",
+    "release:check": "node scripts/validate-release-candidate.mjs",
     "services:list": "node scripts/list-services.mjs",
     "test": "pnpm --recursive --if-present test"
   },

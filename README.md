@@ -50,6 +50,8 @@ docs/
 - [Rastreabilidade de requisitos](docs/project/requirements-traceability.md)
 - [ADR 0001 - Arquitetura base](docs/adr/0001-base-architecture.md)
 - [ADR 0002 - Wallet custodial](docs/adr/0002-custodial-wallet.md)
+- [Release candidate](docs/operations/release-candidate.md)
+- [Rollback](docs/operations/rollback-runbook.md)
 
 ## Politica de commits
 
