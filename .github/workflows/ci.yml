@@ -31,6 +31,7 @@ jobs:
       - run: pnpm --filter @super-trunfo/api-contracts test
       - run: pnpm services:list
       - run: pnpm local:check
+      - run: pnpm release:check
 
   python:
     name: Python services

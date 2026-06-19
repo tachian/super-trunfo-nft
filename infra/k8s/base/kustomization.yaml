@@ -7,5 +7,6 @@ resources:
   - services.yaml
   - web.yaml
   - ingress.yaml
+  - observability.yaml
 commonLabels:
   app.kubernetes.io/part-of: super-trunfo-nft

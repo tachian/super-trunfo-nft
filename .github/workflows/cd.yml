@@ -98,6 +98,13 @@ jobs:
     environment: ${{ inputs.environment || 'staging' }}
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:check
       - uses: azure/setup-kubectl@v5
       - name: Configure kubeconfig
         run: |
