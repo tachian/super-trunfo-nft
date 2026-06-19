@@ -489,6 +489,88 @@ paths:
           description: Friend invite cannot be rejected
         "404":
           description: Friend invite not found
+  /notifications:
+    get:
+      summary: List player notifications
+      operationId: listNotifications
+      tags: [Notification]
+      parameters:
+        - name: player_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Player notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsResponse"
+  /notifications/push:
+    post:
+      summary: Queue a push or in-app notification
+      operationId: queueNotification
+      tags: [Notification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueNotificationRequest"
+      responses:
+        "201":
+          description: Notification queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationActionResponse"
+        "400":
+          description: Invalid notification
+  /notifications/events:
+    post:
+      summary: Queue a notification from a domain event
+      operationId: queueNotificationFromEvent
+      tags: [Notification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueNotificationFromEventRequest"
+      responses:
+        "201":
+          description: Notification queued from event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationActionResponse"
+        "400":
+          description: Unsupported notification event
+  /notifications/{notification_id}/delivered:
+    post:
+      summary: Mark a notification as delivered
+      operationId: markNotificationDelivered
+      tags: [Notification]
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Notification delivered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationActionResponse"
+        "400":
+          description: Notification cannot be delivered
+        "404":
+          description: Notification not found
   /nft/metadata/offline:
     post:
       summary: Generate offline ERC-721 metadata for a card
@@ -1693,6 +1775,154 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Friendship"
+    QueueNotificationRequest:
+      type: object
+      required: [player_id, topic, channel, title, message]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        topic:
+          type: string
+          enum: [invite, match, shop, ranking, event]
+        channel:
+          type: string
+          enum: [push, in_app]
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        source_event_id:
+          type:
+            - string
+            - "null"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+    QueueNotificationFromEventRequest:
+      type: object
+      required: [name, payload]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        payload:
+          type: object
+          additionalProperties: true
+        event_id:
+          type:
+            - string
+            - "null"
+        channel:
+          type: string
+          enum: [push, in_app]
+    NotificationEvent:
+      type: object
+      required: [name, aggregate_id, payload, occurred_at, event_id]
+      properties:
+        name:
+          type: string
+          enum: [NotificationQueued, NotificationDelivered]
+        aggregate_id:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
+        event_id:
+          type: string
+          format: uuid
+    Notification:
+      type: object
+      required:
+        - id
+        - player_id
+        - topic
+        - channel
+        - title
+        - message
+        - status
+        - created_at
+        - delivered_at
+        - source_event_id
+        - metadata
+      properties:
+        id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        topic:
+          type: string
+          enum: [invite, match, shop, ranking, event]
+        channel:
+          type: string
+          enum: [push, in_app]
+        title:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [queued, delivered]
+        created_at:
+          type: string
+          format: date-time
+        delivered_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        source_event_id:
+          type:
+            - string
+            - "null"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+    NotificationActionResponse:
+      type: object
+      required: [service, task, notification, events]
+      properties:
+        service:
+          type: string
+          enum: [notification-service]
+        task:
+          type: string
+          enum: [ST-802]
+        notification:
+          $ref: "#/components/schemas/Notification"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationEvent"
+    NotificationsResponse:
+      type: object
+      required: [service, task, player_id, notifications]
+      properties:
+        service:
+          type: string
+          enum: [notification-service]
+        task:
+          type: string
+          enum: [ST-802]
+        player_id:
+          type: string
+          format: uuid
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
     GenerateNftMetadataRequest:
       type: object
       required: [card_id, name, family, rarity, level]

@@ -232,3 +232,9 @@ contexts:
     events:
       - NotificationQueued
       - NotificationDelivered
+    invariants:
+      - Notification topic must be invite, match, shop, ranking or event.
+      - Notifications require player id, title and message.
+      - Notification channel must be push or in_app.
+      - Delivered notifications must include delivered_at.
+      - External events create notifications only when a recipient player id can be identified.
