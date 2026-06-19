@@ -6,12 +6,24 @@ from super_trunfo_shared import DomainEvent
 from app.domain.entities import (
     LeaderboardEntry,
     Rating,
+    Season,
     create_rating,
+    create_season,
     leaderboard_entries,
     recalculate_elo_ratings,
 )
-from app.domain.events import player_rank_updated_event
-from app.domain.repositories import DomainEventPublisher, LeaderboardCache, RatingRepository
+from app.domain.events import (
+    player_rank_updated_event,
+    season_finished_event,
+    season_started_event,
+)
+from app.domain.exceptions import RankingInvariantError
+from app.domain.repositories import (
+    DomainEventPublisher,
+    LeaderboardCache,
+    RatingRepository,
+    SeasonRepository,
+)
 
 
 @dataclass(frozen=True)
@@ -22,11 +34,40 @@ class RecalculatePlayerRatingCommand:
 
 
 @dataclass(frozen=True)
+class StartSeasonCommand:
+    name: str
+    duration_days: int = 14
+    rating_reset_percentage: int = 50
+
+
+@dataclass(frozen=True)
+class FinishSeasonCommand:
+    season_id: UUID
+
+
+@dataclass(frozen=True)
+class GetCurrentSeasonQuery:
+    pass
+
+
+@dataclass(frozen=True)
 class RecalculatePlayerRatingResult:
     winner_rating: Rating
     loser_rating: Rating
     created: bool
     events: tuple[DomainEvent, ...]
+
+
+@dataclass(frozen=True)
+class SeasonResult:
+    season: Season
+    reset_ratings: tuple[Rating, ...] = ()
+    events: tuple[DomainEvent, ...] = ()
+
+
+@dataclass(frozen=True)
+class CurrentSeasonResult:
+    season: Season | None
 
 
 @dataclass(frozen=True)
@@ -51,6 +92,78 @@ class RankingQueryResult:
     offset: int
     cache_key: str
     cache_hit: bool
+
+
+class StartSeason:
+    def __init__(
+        self,
+        season_repository: SeasonRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
+        self.season_repository = season_repository
+        self.event_publisher = event_publisher
+
+    def execute(self, command: StartSeasonCommand) -> SeasonResult:
+        if self.season_repository.find_current() is not None:
+            raise RankingInvariantError("only one active season is allowed")
+
+        season = create_season(
+            name=command.name,
+            duration_days=command.duration_days,
+            rating_reset_percentage=command.rating_reset_percentage,
+        )
+        self.season_repository.save(season)
+
+        event = season_started_event(season)
+        self.event_publisher.publish(event)
+
+        return SeasonResult(season=season, events=(event,))
+
+
+class FinishSeason:
+    def __init__(
+        self,
+        season_repository: SeasonRepository,
+        rating_repository: RatingRepository,
+        event_publisher: DomainEventPublisher,
+    ) -> None:
+        self.season_repository = season_repository
+        self.rating_repository = rating_repository
+        self.event_publisher = event_publisher
+
+    def execute(self, command: FinishSeasonCommand) -> SeasonResult:
+        season = self.season_repository.find_by_id(command.season_id)
+
+        if season is None:
+            raise RankingInvariantError("season was not found")
+
+        finished_season, reset_ratings = season.finish(
+            ratings=self.rating_repository.list_all()
+        )
+        self.season_repository.save(finished_season)
+
+        if reset_ratings:
+            self.rating_repository.save_many(reset_ratings)
+
+        event = season_finished_event(
+            finished_season,
+            reset_ratings_count=len(reset_ratings),
+        )
+        self.event_publisher.publish(event)
+
+        return SeasonResult(
+            season=finished_season,
+            reset_ratings=reset_ratings,
+            events=(event,),
+        )
+
+
+class GetCurrentSeason:
+    def __init__(self, season_repository: SeasonRepository) -> None:
+        self.season_repository = season_repository
+
+    def execute(self, query: GetCurrentSeasonQuery) -> CurrentSeasonResult:
+        return CurrentSeasonResult(season=self.season_repository.find_current())
 
 
 class RecalculatePlayerRating:

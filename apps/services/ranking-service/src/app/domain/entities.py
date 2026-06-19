@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from .exceptions import RankingInvariantError
 
 DEFAULT_RATING = 1000
 ELO_K_FACTOR = 32
+DEFAULT_SEASON_DURATION_DAYS = 14
+DEFAULT_SEASON_RATING_RESET_PERCENTAGE = 50
 
 
 class RankingTier(StrEnum):
@@ -15,6 +17,11 @@ class RankingTier(StrEnum):
     GOLD = "gold"
     PLATINUM = "platinum"
     DIAMOND = "diamond"
+
+
+class SeasonStatus(StrEnum):
+    ACTIVE = "active"
+    FINISHED = "finished"
 
 
 @dataclass(frozen=True)
@@ -82,6 +89,189 @@ class LeaderboardEntry:
     def __post_init__(self) -> None:
         if self.position < 1:
             raise RankingInvariantError("leaderboard position must be positive")
+
+
+@dataclass(frozen=True)
+class SeasonReward:
+    player_id: UUID
+    position: int
+    tier: RankingTier
+    planned_credits: int
+    planned_badge: str
+
+    def __post_init__(self) -> None:
+        if self.position < 1:
+            raise RankingInvariantError("season reward position must be positive")
+
+        if self.planned_credits < 0:
+            raise RankingInvariantError("season reward credits cannot be negative")
+
+        if not self.planned_badge.strip():
+            raise RankingInvariantError("season reward badge is required")
+
+        object.__setattr__(self, "tier", RankingTier(self.tier))
+        object.__setattr__(self, "planned_badge", self.planned_badge.strip())
+
+
+@dataclass(frozen=True)
+class Season:
+    id: UUID
+    name: str
+    status: SeasonStatus
+    starts_at: datetime
+    ends_at: datetime
+    rating_reset_percentage: int
+    rewards: tuple[SeasonReward, ...] = ()
+    finished_at: datetime | None = None
+
+    def __post_init__(self) -> None:
+        normalized_status = SeasonStatus(self.status)
+        name = self.name.strip()
+
+        if not name:
+            raise RankingInvariantError("season name is required")
+
+        if self.starts_at.tzinfo is None or self.ends_at.tzinfo is None:
+            raise RankingInvariantError("season dates must be timezone-aware")
+
+        if self.ends_at <= self.starts_at:
+            raise RankingInvariantError("season end must be after start")
+
+        if not 0 <= self.rating_reset_percentage <= 100:
+            raise RankingInvariantError("season rating reset must be between 0 and 100")
+
+        if self.finished_at is not None and self.finished_at.tzinfo is None:
+            raise RankingInvariantError("season finish date must be timezone-aware")
+
+        if normalized_status == SeasonStatus.ACTIVE and self.finished_at is not None:
+            raise RankingInvariantError("active season cannot include finish date")
+
+        if normalized_status == SeasonStatus.FINISHED and self.finished_at is None:
+            raise RankingInvariantError("finished season requires finish date")
+
+        object.__setattr__(self, "name", name)
+        object.__setattr__(self, "status", normalized_status)
+
+    @property
+    def duration_days(self) -> int:
+        return (self.ends_at - self.starts_at).days
+
+    def finish(
+        self,
+        *,
+        ratings: tuple[Rating, ...],
+        finished_at: datetime | None = None,
+    ) -> tuple["Season", tuple[Rating, ...]]:
+        if self.status != SeasonStatus.ACTIVE:
+            raise RankingInvariantError("only active seasons can be finished")
+
+        checked_at = finished_at or datetime.now(UTC)
+        entries = leaderboard_entries(ratings)
+        rewards = planned_season_rewards(entries)
+        reset_ratings = tuple(
+            apply_partial_rating_reset(
+                rating,
+                reset_percentage=self.rating_reset_percentage,
+                updated_at=checked_at,
+            )
+            for rating in ratings
+        )
+
+        return (
+            Season(
+                id=self.id,
+                name=self.name,
+                status=SeasonStatus.FINISHED,
+                starts_at=self.starts_at,
+                ends_at=self.ends_at,
+                rating_reset_percentage=self.rating_reset_percentage,
+                rewards=rewards,
+                finished_at=checked_at,
+            ),
+            reset_ratings,
+        )
+
+
+def create_season(
+    *,
+    name: str,
+    duration_days: int = DEFAULT_SEASON_DURATION_DAYS,
+    rating_reset_percentage: int = DEFAULT_SEASON_RATING_RESET_PERCENTAGE,
+    season_id: UUID | None = None,
+    starts_at: datetime | None = None,
+) -> Season:
+    if duration_days < 1:
+        raise RankingInvariantError("season duration must be at least one day")
+
+    checked_start = starts_at or datetime.now(UTC)
+
+    return Season(
+        id=season_id or uuid4(),
+        name=name,
+        status=SeasonStatus.ACTIVE,
+        starts_at=checked_start,
+        ends_at=checked_start + timedelta(days=duration_days),
+        rating_reset_percentage=rating_reset_percentage,
+    )
+
+
+def apply_partial_rating_reset(
+    rating: Rating,
+    *,
+    reset_percentage: int,
+    updated_at: datetime | None = None,
+) -> Rating:
+    if not 0 <= reset_percentage <= 100:
+        raise RankingInvariantError("season rating reset must be between 0 and 100")
+
+    distance_from_default = rating.score - DEFAULT_RATING
+    retained_percentage = 100 - reset_percentage
+    reset_score = DEFAULT_RATING + round(
+        distance_from_default * retained_percentage / 100
+    )
+
+    return Rating(
+        player_id=rating.player_id,
+        score=max(0, reset_score),
+        wins=0,
+        losses=0,
+        applied_match_ids=(),
+        updated_at=updated_at or datetime.now(UTC),
+    )
+
+
+def planned_season_rewards(
+    entries: tuple[LeaderboardEntry, ...],
+) -> tuple[SeasonReward, ...]:
+    rewards: list[SeasonReward] = []
+    reward_plan = (
+        (1, 10, "season_champion"),
+        (2, 5, "season_runner_up"),
+        (3, 3, "season_top_three"),
+    )
+    credits_by_position = {
+        position: (planned_credits, planned_badge)
+        for position, planned_credits, planned_badge in reward_plan
+    }
+
+    for entry in entries:
+        reward = credits_by_position.get(entry.position)
+
+        if reward is None:
+            continue
+
+        planned_credits, planned_badge = reward
+        rewards.append(
+            SeasonReward(
+                player_id=entry.rating.player_id,
+                position=entry.position,
+                tier=entry.rating.tier,
+                planned_credits=planned_credits,
+                planned_badge=planned_badge,
+            )
+        )
+
+    return tuple(rewards)
 
 
 def tier_for_score(score: int) -> RankingTier:

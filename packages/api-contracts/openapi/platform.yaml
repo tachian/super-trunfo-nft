@@ -392,6 +392,61 @@ paths:
                 $ref: "#/components/schemas/RecalculatePlayerRatingResponse"
         "400":
           description: Invalid ranking recalculation
+  /ranking/seasons/current:
+    get:
+      summary: Get the current active ranking season
+      operationId: getCurrentSeason
+      tags: [Ranking]
+      responses:
+        "200":
+          description: Current active season or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentSeasonResponse"
+  /ranking/seasons/start:
+    post:
+      summary: Start a configurable ranking season
+      operationId: startSeason
+      tags: [Ranking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartSeasonRequest"
+      responses:
+        "201":
+          description: Season started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeasonActionResponse"
+        "400":
+          description: Invalid season
+  /ranking/seasons/{season_id}/finish:
+    post:
+      summary: Finish a season, plan rewards and partially reset ratings
+      operationId: finishSeason
+      tags: [Ranking]
+      parameters:
+        - name: season_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Season finished
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeasonActionResponse"
+        "400":
+          description: Season cannot be finished
+        "404":
+          description: Season not found
   /friends:
     get:
       summary: List player friends
@@ -1338,7 +1393,7 @@ components:
       properties:
         name:
           type: string
-          enum: [PlayerRankUpdated]
+          enum: [PlayerRankUpdated, SeasonStarted, SeasonFinished]
         aggregate_id:
           type: string
         payload:
@@ -1373,6 +1428,118 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RankingEvent"
+    StartSeasonRequest:
+      type: object
+      additionalProperties: false
+      required: [name, duration_days, rating_reset_percentage]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        duration_days:
+          type: integer
+          minimum: 1
+        rating_reset_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+    SeasonReward:
+      type: object
+      required: [player_id, position, tier, planned_credits, planned_badge]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+          minimum: 1
+          maximum: 3
+        tier:
+          type: string
+          enum: [bronze, silver, gold, platinum, diamond]
+        planned_credits:
+          type: integer
+          minimum: 0
+        planned_badge:
+          type: string
+    SeasonResponse:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - starts_at
+        - ends_at
+        - duration_days
+        - rating_reset_percentage
+        - finished_at
+        - rewards
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, finished]
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        duration_days:
+          type: integer
+          minimum: 1
+        rating_reset_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        finished_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        rewards:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonReward"
+    SeasonActionResponse:
+      type: object
+      required: [service, task, season, reset_ratings, events]
+      properties:
+        service:
+          type: string
+          enum: [ranking-service]
+        task:
+          type: string
+          enum: [ST-803]
+        season:
+          $ref: "#/components/schemas/SeasonResponse"
+        reset_ratings:
+          type: array
+          items:
+            $ref: "#/components/schemas/RankingRating"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/RankingEvent"
+    CurrentSeasonResponse:
+      type: object
+      required: [service, task, season]
+      properties:
+        service:
+          type: string
+          enum: [ranking-service]
+        task:
+          type: string
+          enum: [ST-803]
+        season:
+          oneOf:
+            - $ref: "#/components/schemas/SeasonResponse"
+            - type: "null"
     MatchmakingQueue:
       type: object
       required: [tier, name, size]

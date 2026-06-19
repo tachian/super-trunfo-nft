@@ -179,6 +179,36 @@ events:
       wins: integer
       losses: integer
       updated_at: datetime
+  - name: SeasonStarted
+    version: 1.0.0
+    producer: ranking-service
+    consumers: [notification-service]
+    payload:
+      schema_version: string
+      season_id: uuid
+      name: string
+      status: string
+      starts_at: datetime
+      ends_at: datetime
+      duration_days: integer
+      rating_reset_percentage: integer
+      finished_at: datetime|null
+  - name: SeasonFinished
+    version: 1.0.0
+    producer: ranking-service
+    consumers: [economy-service, notification-service]
+    payload:
+      schema_version: string
+      season_id: uuid
+      name: string
+      status: string
+      starts_at: datetime
+      ends_at: datetime
+      duration_days: integer
+      rating_reset_percentage: integer
+      finished_at: datetime
+      reset_ratings_count: integer
+      reward_plan: object[]
   - name: MarketplaceListingCreated
     version: 1.0.0
     producer: nft-service
