@@ -50,6 +50,7 @@ class GenerateNftMetadataCommand:
     intelligence: int | None = None
     resistance: int | None = None
     expires_at: datetime | None = None
+    mint_enabled: bool = False
 
 
 @dataclass(frozen=True)
@@ -121,6 +122,7 @@ class GenerateNftMetadata:
             intelligence=command.intelligence,
             resistance=command.resistance,
             expires_at=command.expires_at,
+            mint_enabled=command.mint_enabled,
         )
 
         self.repository.save(metadata)
