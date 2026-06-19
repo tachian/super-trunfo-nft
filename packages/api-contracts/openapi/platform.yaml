@@ -392,6 +392,103 @@ paths:
                 $ref: "#/components/schemas/RecalculatePlayerRatingResponse"
         "400":
           description: Invalid ranking recalculation
+  /friends:
+    get:
+      summary: List player friends
+      operationId: listFriends
+      tags: [Social]
+      parameters:
+        - name: player_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Player friendships
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendsResponse"
+  /friends/invite:
+    post:
+      summary: Send a friend invite
+      operationId: sendFriendInvite
+      tags: [Social]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendFriendInviteRequest"
+      responses:
+        "201":
+          description: Friend invite sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendInviteActionResponse"
+        "400":
+          description: Invalid friend invite
+  /friends/invite/{invite_id}/accept:
+    post:
+      summary: Accept a friend invite
+      operationId: acceptFriendInvite
+      tags: [Social]
+      parameters:
+        - name: invite_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerFriendInviteRequest"
+      responses:
+        "200":
+          description: Friend invite accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendInviteActionResponse"
+        "400":
+          description: Friend invite cannot be accepted
+        "404":
+          description: Friend invite not found
+  /friends/invite/{invite_id}/reject:
+    post:
+      summary: Reject a friend invite
+      operationId: rejectFriendInvite
+      tags: [Social]
+      parameters:
+        - name: invite_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerFriendInviteRequest"
+      responses:
+        "200":
+          description: Friend invite rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendInviteActionResponse"
+        "400":
+          description: Friend invite cannot be rejected
+        "404":
+          description: Friend invite not found
   /nft/metadata/offline:
     post:
       summary: Generate offline ERC-721 metadata for a card
@@ -1483,6 +1580,119 @@ components:
           type:
             - string
             - "null"
+    SendFriendInviteRequest:
+      type: object
+      required: [requester_id, addressee_id]
+      properties:
+        requester_id:
+          type: string
+          format: uuid
+        addressee_id:
+          type: string
+          format: uuid
+    AnswerFriendInviteRequest:
+      type: object
+      required: [player_id]
+      properties:
+        player_id:
+          type: string
+          format: uuid
+    SocialEvent:
+      type: object
+      required: [name, aggregate_id, payload, occurred_at, event_id]
+      properties:
+        name:
+          type: string
+          enum: [FriendInviteSent, FriendInviteAccepted, FriendInviteRejected]
+        aggregate_id:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
+        event_id:
+          type: string
+          format: uuid
+    FriendInvite:
+      type: object
+      required:
+        [id, requester_id, addressee_id, status, created_at, responded_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        requester_id:
+          type: string
+          format: uuid
+        addressee_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+        created_at:
+          type: string
+          format: date-time
+        responded_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+    Friendship:
+      type: object
+      required: [id, player_id, friend_id, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        friend_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+    FriendInviteActionResponse:
+      type: object
+      required: [service, task, invite, friendship, events]
+      properties:
+        service:
+          type: string
+          enum: [social-service]
+        task:
+          type: string
+          enum: [ST-801]
+        invite:
+          $ref: "#/components/schemas/FriendInvite"
+        friendship:
+          oneOf:
+            - $ref: "#/components/schemas/Friendship"
+            - type: "null"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/SocialEvent"
+    FriendsResponse:
+      type: object
+      required: [service, task, player_id, friends]
+      properties:
+        service:
+          type: string
+          enum: [social-service]
+        task:
+          type: string
+          enum: [ST-801]
+        player_id:
+          type: string
+          format: uuid
+        friends:
+          type: array
+          items:
+            $ref: "#/components/schemas/Friendship"
     GenerateNftMetadataRequest:
       type: object
       required: [card_id, name, family, rarity, level]

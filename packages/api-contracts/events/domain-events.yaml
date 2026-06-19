@@ -255,3 +255,37 @@ events:
   - name: MarketplaceSaleCompleted
     producer: nft-service
     consumers: [economy-service, ranking-service, notification-service]
+  - name: FriendInviteSent
+    version: 1.0.0
+    producer: social-service
+    consumers: [notification-service]
+    payload:
+      schema_version: string
+      invite_id: uuid
+      requester_id: uuid
+      addressee_id: uuid
+      status: string
+      created_at: datetime
+  - name: FriendInviteAccepted
+    version: 1.0.0
+    producer: social-service
+    consumers: [ranking-service, notification-service]
+    payload:
+      schema_version: string
+      invite_id: uuid
+      requester_id: uuid
+      addressee_id: uuid
+      friendship_id: uuid
+      status: string
+      responded_at: datetime
+  - name: FriendInviteRejected
+    version: 1.0.0
+    producer: social-service
+    consumers: [notification-service]
+    payload:
+      schema_version: string
+      invite_id: uuid
+      requester_id: uuid
+      addressee_id: uuid
+      status: string
+      responded_at: datetime

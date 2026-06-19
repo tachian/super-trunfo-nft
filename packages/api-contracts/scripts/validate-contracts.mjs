@@ -198,6 +198,30 @@ for (const fragment of requiredRankingContractFragments) {
   }
 }
 
+const requiredSocialContractFragments = [
+  "operationId: listFriends",
+  "operationId: sendFriendInvite",
+  "operationId: acceptFriendInvite",
+  "operationId: rejectFriendInvite",
+  "SendFriendInviteRequest:",
+  "AnswerFriendInviteRequest:",
+  "FriendInvite:",
+  "Friendship:",
+  "FriendInviteActionResponse:",
+  "FriendsResponse:",
+  "SocialEvent:",
+  "enum: [pending, accepted, rejected]",
+  "enum: [FriendInviteSent, FriendInviteAccepted, FriendInviteRejected]",
+  "enum: [social-service]",
+  "enum: [ST-801]",
+];
+
+for (const fragment of requiredSocialContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing social contract fragment: ${fragment}`);
+  }
+}
+
 const domainContracts = readFileSync(
   join(packageRoot, "domain/domain-contracts.yaml"),
   "utf8",
@@ -263,6 +287,19 @@ const requiredRankingDomainFragments = [
 for (const fragment of requiredRankingDomainFragments) {
   if (!domainContracts.includes(fragment)) {
     throw new Error(`Missing ranking domain contract fragment: ${fragment}`);
+  }
+}
+
+const requiredSocialDomainFragments = [
+  "Friend invites require different requester and addressee players.",
+  "Only pending friend invites can be accepted or rejected.",
+  "Only the invite addressee can accept or reject it.",
+  "Accepted invites create exactly one friendship between the two players.",
+];
+
+for (const fragment of requiredSocialDomainFragments) {
+  if (!domainContracts.includes(fragment)) {
+    throw new Error(`Missing social domain contract fragment: ${fragment}`);
   }
 }
 
@@ -391,6 +428,23 @@ const requiredRankingEventFragments = [
 for (const fragment of requiredRankingEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing ranking event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredSocialEventFragments = [
+  "name: FriendInviteSent",
+  "name: FriendInviteAccepted",
+  "name: FriendInviteRejected",
+  "producer: social-service",
+  "invite_id: uuid",
+  "requester_id: uuid",
+  "addressee_id: uuid",
+  "friendship_id: uuid",
+];
+
+for (const fragment of requiredSocialEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(`Missing social event contract fragment: ${fragment}`);
   }
 }
 
