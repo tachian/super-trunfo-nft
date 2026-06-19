@@ -213,6 +213,12 @@ contexts:
     events:
       - FriendInviteSent
       - FriendInviteAccepted
+      - FriendInviteRejected
+    invariants:
+      - Friend invites require different requester and addressee players.
+      - Only pending friend invites can be accepted or rejected.
+      - Only the invite addressee can accept or reject it.
+      - Accepted invites create exactly one friendship between the two players.
   notification:
     service: notification-service
     aggregates:
