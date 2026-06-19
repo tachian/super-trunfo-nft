@@ -32,6 +32,21 @@ O fluxo de CI executa:
 
 Quando `SONAR_ENABLED=true` e `SONAR_TOKEN` estiver configurado no GitHub, o CI tambem executa SonarCloud com quality gate bloqueante.
 
+## Hardening de Servicos
+
+Os servicos FastAPI herdam hardening do shared kernel. Para staging e producao, configure:
+
+| Variavel                                 | Valor sugerido            | Observacao                                       |
+| ---------------------------------------- | ------------------------- | ------------------------------------------------ |
+| `SUPER_TRUNFO_RATE_LIMIT_ENABLED`        | `true`                    | Mantem rate limit ativo.                         |
+| `SUPER_TRUNFO_RATE_LIMIT_REQUESTS`       | `120`                     | Ajustar por endpoint quando houver telemetria.   |
+| `SUPER_TRUNFO_RATE_LIMIT_WINDOW_SECONDS` | `60`                      | Janela padrao de um minuto.                      |
+| `SUPER_TRUNFO_RATE_LIMIT_EXCLUDED_PATHS` | `/health,/ready,/context` | Exclusao apenas para probes sem dados sensiveis. |
+| `SUPER_TRUNFO_MAX_REQUEST_BODY_BYTES`    | `1048576`                 | 1 MiB por request no MVP.                        |
+| `SUPER_TRUNFO_HSTS_ENABLED`              | `true`                    | Usar somente atras de HTTPS valido.              |
+
+O CI bloqueia vulnerabilidades altas/criticas e secrets detectados por Trivy. Excecoes devem ser registradas em ADR ou runbook antes de qualquer merge.
+
 O fluxo de CD publica imagens no GitHub Container Registry em pushes para `main` e tags `v*.*.*`.
 
 O deploy GitOps e controlado manualmente por `workflow_dispatch`, escolhendo `staging` ou `production`. Isso evita tentativas automaticas de deploy sem `KUBE_CONFIG` ou sem aprovacao do ambiente.

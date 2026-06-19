@@ -72,3 +72,16 @@ O CI deve falhar quando qualquer gate obrigatorio encontrar problema:
 - Contratos: OpenAPI/eventos em `packages/api-contracts` precisam validar antes do merge.
 
 SonarCloud deve ser usado quando o repositorio estiver configurado com `SONAR_TOKEN` e variavel `SONAR_ENABLED=true`. Quando habilitado, o quality gate SonarCloud e bloqueante por `sonar.qualitygate.wait=true`.
+
+## Hardening Obrigatorio
+
+Todo servico criado com o shared kernel FastAPI deve manter os controles de ST-804 habilitados:
+
+- Rate limit por IP, metodo e rota, configurado por `SUPER_TRUNFO_RATE_LIMIT_REQUESTS`, `SUPER_TRUNFO_RATE_LIMIT_WINDOW_SECONDS` e `SUPER_TRUNFO_RATE_LIMIT_EXCLUDED_PATHS`.
+- Limite de payload por `SUPER_TRUNFO_MAX_REQUEST_BODY_BYTES`, bloqueando requests excessivos com HTTP 413.
+- Escritas HTTP com body devem usar `application/json`; outros tipos sao rejeitados com HTTP 415.
+- Headers OWASP minimos: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` e `Cache-Control`.
+- HSTS deve ser habilitado em ambientes HTTPS por `SUPER_TRUNFO_HSTS_ENABLED=true`.
+- `health`, `ready` e `context` podem ficar fora de rate limit para probes de plataforma, desde que nao exponham dados sensiveis.
+
+O CI deve manter secret scanning bloqueante alem de CodeQL, Trivy de vulnerabilidades, Ruff, testes, contratos e duplicacao.
