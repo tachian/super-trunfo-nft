@@ -437,7 +437,11 @@ paths:
       tags: [NFT]
       responses:
         "202":
-          description: Disabled until post-MVP
+          description: NFT mint feature flag status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NftMintFeatureFlagResponse"
   /marketplace/listings:
     post:
       summary: Create a marketplace listing for an NFT card
@@ -1563,7 +1567,23 @@ components:
               format: date-time
             mint_enabled:
               type: boolean
-              enum: [false]
+    NftMintFeatureFlagResponse:
+      type: object
+      required: [service, status, task, feature_nft_enabled, reason]
+      properties:
+        service:
+          type: string
+          enum: [nft-service]
+        status:
+          type: string
+          enum: [disabled, enabled]
+        task:
+          type: string
+          enum: [ST-705]
+        feature_nft_enabled:
+          type: boolean
+        reason:
+          type: string
     CreateMarketplaceListingRequest:
       type: object
       required: [seller_id, card_id, token_id, price, expires_at]

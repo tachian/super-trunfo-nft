@@ -66,12 +66,15 @@ const requiredNftContractFragments = [
   "GenerateNftMetadataRequest:",
   "NftMetadata:",
   "NftAttribute:",
+  "NftMintFeatureFlagResponse:",
   "CreateMarketplaceListingRequest:",
   "MarketplaceListing:",
   "MarketplaceListingHistoryEntry:",
   "mint_enabled:",
+  "feature_nft_enabled:",
+  "enum: [ST-705]",
+  "enum: [disabled, enabled]",
   "enum: [active, expired, cancelled, sold]",
-  "enum: [false]",
 ];
 
 for (const fragment of requiredNftContractFragments) {

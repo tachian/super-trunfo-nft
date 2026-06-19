@@ -357,6 +357,7 @@ def create_nft_metadata(
     resistance: int | None = None,
     expires_at: datetime | None = None,
     generated_at: datetime | None = None,
+    mint_enabled: bool = False,
 ) -> NftMetadata:
     attributes = [
         NftAttribute("Family", family),
@@ -385,7 +386,7 @@ def create_nft_metadata(
         image=f"{NFT_IMAGE_BASE_URI}/{card_id}.png",
         attributes=tuple(attributes),
         generated_at=generated_at or datetime.now(UTC),
-        mint_enabled=False,
+        mint_enabled=mint_enabled,
     )
 
 

@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import pytest
+from app.config import NftFeatureFlags
 from app.main import app
 from httpx import ASGITransport, AsyncClient
 
@@ -9,6 +10,7 @@ from httpx import ASGITransport, AsyncClient
 async def test_generate_and_get_offline_metadata() -> None:
     app.state.nft_metadata_repository.clear()
     app.state.domain_event_publisher.clear()
+    app.state.nft_feature_flags = NftFeatureFlags(blockchain_enabled=False)
     card_id = "22222222-2222-4222-8222-222222222205"
 
     async with AsyncClient(
@@ -60,7 +62,38 @@ async def test_get_unknown_metadata_returns_not_found() -> None:
 
 
 @pytest.mark.anyio
-async def test_mint_endpoint_remains_disabled_for_mvp() -> None:
+async def test_generate_metadata_reflects_enabled_nft_feature_flag() -> None:
+    app.state.nft_metadata_repository.clear()
+    app.state.domain_event_publisher.clear()
+    app.state.nft_feature_flags = NftFeatureFlags(blockchain_enabled=True)
+    card_id = "22222222-2222-4222-8222-222222222705"
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/nft/metadata/offline",
+            json={
+                "card_id": card_id,
+                "name": "Flagged Titan",
+                "family": "flagged",
+                "rarity": 80,
+                "level": 334,
+            },
+        )
+
+    payload = response.json()
+
+    assert response.status_code == 201
+    assert payload["properties"]["mint_enabled"] is True
+    assert app.state.domain_event_publisher.published_events()[0].payload["mint_enabled"] is True
+
+
+@pytest.mark.anyio
+async def test_mint_endpoint_remains_disabled_by_default() -> None:
+    app.state.nft_feature_flags = NftFeatureFlags(blockchain_enabled=False)
+
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -71,4 +104,23 @@ async def test_mint_endpoint_remains_disabled_for_mvp() -> None:
 
     assert response.status_code == 202
     assert payload["status"] == "disabled"
-    assert payload["task"] == "ST-701"
+    assert payload["task"] == "ST-705"
+    assert payload["feature_nft_enabled"] is False
+
+
+@pytest.mark.anyio
+async def test_mint_endpoint_reports_enabled_feature_flag() -> None:
+    app.state.nft_feature_flags = NftFeatureFlags(blockchain_enabled=True)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post("/nft/mint")
+
+    payload = response.json()
+
+    assert response.status_code == 202
+    assert payload["status"] == "enabled"
+    assert payload["task"] == "ST-705"
+    assert payload["feature_nft_enabled"] is True

@@ -116,6 +116,7 @@ def create_nft_router() -> APIRouter:
                 intelligence=payload.intelligence,
                 resistance=payload.resistance,
                 expires_at=payload.expires_at,
+                mint_enabled=request.app.state.nft_feature_flags.blockchain_enabled,
             )
         )
 
@@ -143,12 +144,24 @@ def create_nft_router() -> APIRouter:
         return metadata_response(metadata)
 
     @router.post("/nft/mint", status_code=status.HTTP_202_ACCEPTED)
-    async def mint_nft() -> dict[str, str]:
+    async def mint_nft(request: Request) -> dict[str, object]:
+        blockchain_enabled = request.app.state.nft_feature_flags.blockchain_enabled
+
+        if blockchain_enabled:
+            return {
+                "service": "nft-service",
+                "status": "enabled",
+                "task": "ST-705",
+                "feature_nft_enabled": True,
+                "reason": "Blockchain feature flag is enabled for post-MVP mint flows.",
+            }
+
         return {
             "service": "nft-service",
             "status": "disabled",
-            "task": "ST-701",
-            "reason": "Mint on-chain is outside the MVP scope.",
+            "task": "ST-705",
+            "feature_nft_enabled": False,
+            "reason": "Blockchain features are disabled by default for the MVP.",
         }
 
     @router.post(
