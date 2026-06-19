@@ -289,3 +289,33 @@ events:
       addressee_id: uuid
       status: string
       responded_at: datetime
+  - name: NotificationQueued
+    version: 1.0.0
+    producer: notification-service
+    consumers: [web, mobile]
+    payload:
+      schema_version: string
+      notification_id: uuid
+      player_id: uuid
+      topic: string
+      channel: string
+      status: string
+      title: string
+      source_event_id: string|null
+      created_at: datetime
+      delivered_at: datetime|null
+  - name: NotificationDelivered
+    version: 1.0.0
+    producer: notification-service
+    consumers: [analytics]
+    payload:
+      schema_version: string
+      notification_id: uuid
+      player_id: uuid
+      topic: string
+      channel: string
+      status: string
+      title: string
+      source_event_id: string|null
+      created_at: datetime
+      delivered_at: datetime

@@ -222,6 +222,30 @@ for (const fragment of requiredSocialContractFragments) {
   }
 }
 
+const requiredNotificationContractFragments = [
+  "operationId: listNotifications",
+  "operationId: queueNotification",
+  "operationId: queueNotificationFromEvent",
+  "operationId: markNotificationDelivered",
+  "QueueNotificationRequest:",
+  "QueueNotificationFromEventRequest:",
+  "Notification:",
+  "NotificationActionResponse:",
+  "NotificationsResponse:",
+  "NotificationEvent:",
+  "enum: [invite, match, shop, ranking, event]",
+  "enum: [push, in_app]",
+  "enum: [queued, delivered]",
+  "enum: [notification-service]",
+  "enum: [ST-802]",
+];
+
+for (const fragment of requiredNotificationContractFragments) {
+  if (!platformContract.includes(fragment)) {
+    throw new Error(`Missing notification contract fragment: ${fragment}`);
+  }
+}
+
 const domainContracts = readFileSync(
   join(packageRoot, "domain/domain-contracts.yaml"),
   "utf8",
@@ -300,6 +324,22 @@ const requiredSocialDomainFragments = [
 for (const fragment of requiredSocialDomainFragments) {
   if (!domainContracts.includes(fragment)) {
     throw new Error(`Missing social domain contract fragment: ${fragment}`);
+  }
+}
+
+const requiredNotificationDomainFragments = [
+  "Notification topic must be invite, match, shop, ranking or event.",
+  "Notifications require player id, title and message.",
+  "Notification channel must be push or in_app.",
+  "Delivered notifications must include delivered_at.",
+  "External events create notifications only when a recipient player id can be identified.",
+];
+
+for (const fragment of requiredNotificationDomainFragments) {
+  if (!domainContracts.includes(fragment)) {
+    throw new Error(
+      `Missing notification domain contract fragment: ${fragment}`,
+    );
   }
 }
 
@@ -428,6 +468,25 @@ const requiredRankingEventFragments = [
 for (const fragment of requiredRankingEventFragments) {
   if (!domainEventsContract.includes(fragment)) {
     throw new Error(`Missing ranking event contract fragment: ${fragment}`);
+  }
+}
+
+const requiredNotificationEventFragments = [
+  "name: NotificationQueued",
+  "name: NotificationDelivered",
+  "producer: notification-service",
+  "notification_id: uuid",
+  "topic: string",
+  "channel: string",
+  "source_event_id: string|null",
+  "delivered_at: datetime|null",
+];
+
+for (const fragment of requiredNotificationEventFragments) {
+  if (!domainEventsContract.includes(fragment)) {
+    throw new Error(
+      `Missing notification event contract fragment: ${fragment}`,
+    );
   }
 }
 
